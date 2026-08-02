@@ -97,6 +97,8 @@ body {
 main { max-width: 760px; margin: 0 auto; padding: 20px; }
 
 .industry-filter { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+/* 作者樣式的 display 會蓋過 hidden 屬性的預設 display:none，需明確補回 */
+.industry-filter[hidden] { display: none; }
 .chip {
   font: inherit;
   font-size: 0.8rem;

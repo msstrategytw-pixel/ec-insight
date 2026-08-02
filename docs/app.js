@@ -155,6 +155,7 @@ function render() {
     );
   } else {
     filterEl.hidden = true;
+    filterEl.innerHTML = "";
   }
 
   const visible =
