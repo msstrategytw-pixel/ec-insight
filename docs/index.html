@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>電商情報站</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <h1>電商情報站</h1>
+        <p class="tagline">顧問團隊每週情報彙整</p>
+      </div>
+      <div class="issue-picker">
+        <label for="issue-select">期別</label>
+        <select id="issue-select"></select>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" role="tab" data-tab="ops">🛠 電商經營</button>
+      <button class="tab" role="tab" data-tab="market">📊 市場動態</button>
+      <button class="tab" role="tab" data-tab="external">🌏 外站趨勢</button>
+    </nav>
+  </header>
+
+  <main>
+    <div id="industry-filter" class="industry-filter" hidden></div>
+    <div id="items"></div>
+    <details id="unpublished" class="unpublished" hidden>
+      <summary>本期未達刊登門檻的條目（<span id="unpublished-count">0</span>）</summary>
+      <div id="unpublished-items"></div>
+    </details>
+    <section id="editor-note" class="editor-note" hidden>
+      <h2>📝 本期編輯後記</h2>
+      <p id="editor-note-text"></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>由 AI 依<span id="policy-version"></span>編輯方針蒐集彙整・所有條目附原文連結・內部參考用</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
