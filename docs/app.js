@@ -1,6 +1,7 @@
 const state = {
   issues: [],
   industries: [],
+  config: {},
   data: null,
   tab: "ops",
   industry: null,
@@ -9,11 +10,13 @@ const state = {
 const $ = (sel) => document.querySelector(sel);
 
 async function loadIndex() {
-  const [res, indRes] = await Promise.all([
+  const [res, indRes, cfgRes] = await Promise.all([
     fetch("data/index.json"),
     fetch("data/industries.json"),
+    fetch("data/config.json"),
   ]);
   state.industries = (await indRes.json()).industries;
+  state.config = await cfgRes.json();
   const idx = await res.json();
   state.issues = idx.issues.slice().sort((a, b) => b.date.localeCompare(a.date));
   const select = $("#issue-select");
@@ -57,6 +60,13 @@ function itemCard(item) {
   const sources = item.sources
     .map((s) => `<a href="${s.url}" target="_blank" rel="noopener">${s.name}</a>`)
     .join("・");
+  const feedback = state.config.feedback_endpoint
+    ? `<div class="feedback" data-id="${item.id}">
+         <span class="feedback-q">這則有用嗎？</span>
+         <button class="fb-btn" data-verdict="有用">👍 有用</button>
+         <button class="fb-btn" data-verdict="沒用">👎 沒用</button>
+       </div>`
+    : "";
   return `
     <article class="card">
       <div class="card-meta">${meta.join("")}</div>
@@ -64,7 +74,60 @@ function itemCard(item) {
       <p class="summary">${item.summary}</p>
       <div class="why"><strong>對商家的意義</strong>　${item.why_it_matters}</div>
       <div class="sources">來源：${sources}</div>
+      ${feedback}
     </article>`;
+}
+
+// ---- 回饋 ----
+
+function getUser() {
+  let user = localStorage.getItem("ec-insight-user");
+  if (!user) {
+    user = (window.prompt("請輸入你的名字（只會問這一次，用於辨識回饋來源）") || "").trim();
+    if (user) localStorage.setItem("ec-insight-user", user);
+  }
+  return user;
+}
+
+async function sendFeedback(payload) {
+  // Apps Script 端點：用預設的 text/plain 送出，避免觸發 CORS preflight
+  const res = await fetch(state.config.feedback_endpoint, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  const out = await res.json();
+  if (!out.ok) throw new Error(out.error || "unknown error");
+}
+
+function bindFeedback() {
+  document.querySelectorAll(".feedback").forEach((box) => {
+    box.querySelectorAll(".fb-btn").forEach((btn) =>
+      btn.addEventListener("click", async () => {
+        const item = state.data.items.find((i) => i.id === box.dataset.id);
+        const verdict = btn.dataset.verdict;
+        const user = getUser();
+        const note =
+          verdict === "沒用"
+            ? (window.prompt("為什麼沒用？（選填，一句話就好，會用來調整選材標準）") || "").trim()
+            : "";
+        box.innerHTML = `<span class="feedback-q">送出中…</span>`;
+        try {
+          await sendFeedback({
+            user,
+            issue: state.data.date,
+            item_id: item.id,
+            tab: item.tab,
+            title: item.title,
+            verdict,
+            note,
+          });
+          box.innerHTML = `<span class="feedback-done">✓ 已記錄「${verdict}」，謝謝</span>`;
+        } catch (err) {
+          box.innerHTML = `<span class="feedback-err">送出失敗（${err.message}），請稍後再試</span>`;
+        }
+      })
+    );
+  });
 }
 
 function render() {
@@ -108,6 +171,8 @@ function render() {
   unpubEl.hidden = unpublished.length === 0;
   $("#unpublished-count").textContent = unpublished.length;
   $("#unpublished-items").innerHTML = unpublished.map(itemCard).join("");
+
+  bindFeedback();
 }
 
 document.querySelectorAll(".tab").forEach((btn) =>

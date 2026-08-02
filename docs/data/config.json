@@ -1,0 +1,5 @@
+{
+  "_說明": "網站設定。feedback_endpoint 填入 Apps Script 部署後的網頁應用程式網址；留空則網站不顯示回饋按鈕。",
+  "feedback_endpoint": "",
+  "feedback_sheet_id": "1ErsxKhXDYsfytsnTTt-nLkGJPAPjjwa-dWMkeC2HwhU"
+}

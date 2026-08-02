@@ -170,6 +170,31 @@ main { max-width: 760px; margin: 0 auto; padding: 20px; }
 .sources a { color: var(--text-soft); text-decoration: underline; text-underline-offset: 3px; }
 .sources a:hover { color: var(--accent); }
 
+.feedback {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  flex-wrap: wrap;
+}
+.fb-btn {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 3px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-soft);
+  cursor: pointer;
+}
+.fb-btn:hover { border-color: var(--accent); color: var(--accent); }
+.feedback-done { color: var(--accent); font-weight: 600; }
+.feedback-err { color: var(--warn); }
+
 .empty { color: var(--text-soft); text-align: center; padding: 48px 0; font-size: 0.9rem; }
 
 .unpublished { margin: 24px 0; }
