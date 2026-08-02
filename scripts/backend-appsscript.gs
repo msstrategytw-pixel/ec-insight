@@ -14,7 +14,7 @@
  */
 
 const SHEET_ID = '1ErsxKhXDYsfytsnTTt-nLkGJPAPjjwa-dWMkeC2HwhU';
-const CLIENT_ID = ''; // 例：123456789-abcdefg.apps.googleusercontent.com
+const CLIENT_ID = '247318398256-ekedifvb0icn0ge5v1gcnti4n6i597br.apps.googleusercontent.com';
 
 const FEEDBACK_HEADERS = ['時間', '回饋者', '期別', '條目ID', '分類', '標題', '評價', '原因'];
 const SAVE_HEADERS = ['時間', 'Email', '條目ID', '期別', '標題', '狀態'];
