@@ -15,12 +15,16 @@ GitHub repo（存檔＋版本紀錄）
 GitHub Pages（情報網站，main 分支 /docs）
 ```
 
-每週執行的完整指示見 [WEEKLY_AGENT.md](WEEKLY_AGENT.md)。
+- 分工、執行流程、修改流程 → [流程說明.md](流程說明.md)
+- Agent 每次執行的完整指示（runbook）→ [WEEKLY_AGENT.md](WEEKLY_AGENT.md)
+
+> ⚠️ 方針內容只能在 Google Docs 改。`編輯方針/*.md` 是每次執行時匯出的快照，直接改會被覆寫。
 
 ## 目錄結構
 
 ```
 ec-insight/
+├── 流程說明.md        ← 分工與流程（流程有變動時更新這份）
 ├── WEEKLY_AGENT.md   ← 排程 agent 的執行指示（人也可讀，即 runbook）
 ├── 編輯方針/          ← agent 的「大腦設定」，顧問可改（見其 README）
 │   ├── doc-ids.json  ← 對應的 Google Doc ID（填入後 agent 以 Docs 為準）
