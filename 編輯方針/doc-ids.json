@@ -1,8 +1,8 @@
 {
   "_說明": "填入各方針對應的 Google Doc ID（文件網址 /d/ 與 /edit 之間那段）。填入後，agent 每次執行會以 Google Docs 最新內容為準，並把快照寫回同名 md 檔。留空（null）則直接使用 repo 內的 md 檔。",
-  "產業清單": null,
-  "電商經營-蒐集方針": null,
-  "市場動態-蒐集方針": null,
-  "外站趨勢-蒐集方針": null,
-  "評分標準": null
+  "產業清單": "153R4XvwLDTdE5JzKoKJf-iMDhIOHx9jpN4AdRuL629g",
+  "電商經營-蒐集方針": "1dY5fkOP7qUAjsEysXw_pfoBgR-xDGkkliNXYYOMeIsY",
+  "市場動態-蒐集方針": "1RJmBrUs-83s6eRyb2AZslvjewrab9F3Bk0AYUX_OdvY",
+  "外站趨勢-蒐集方針": "1cl_4FAdfVMquG7QyUxTd1Zx6fGdDH1xTUgTeGBvAP7s",
+  "評分標準": "18ogvO_Y7qQk2Kd5Uy_f-hNgHyg5kawA1_SrIwzHRSf8"
 }
