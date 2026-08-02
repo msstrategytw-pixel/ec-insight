@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>電商情報站</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -13,15 +14,19 @@
         <h1>電商情報站</h1>
         <p class="tagline">顧問團隊每週情報彙整</p>
       </div>
-      <div class="issue-picker">
-        <label for="issue-select">期別</label>
-        <select id="issue-select"></select>
+      <div class="header-right">
+        <div id="auth" class="auth" hidden></div>
+        <div class="issue-picker">
+          <label for="issue-select">期別</label>
+          <select id="issue-select"></select>
+        </div>
       </div>
     </div>
     <nav class="tabs" role="tablist">
       <button class="tab active" role="tab" data-tab="ops">🛠 電商經營</button>
       <button class="tab" role="tab" data-tab="market">📊 市場動態</button>
       <button class="tab" role="tab" data-tab="external">🌏 外站趨勢</button>
+      <button class="tab saved-tab" id="saved-btn" hidden>★ 收藏 <span id="saved-count">0</span></button>
     </nav>
   </header>
 

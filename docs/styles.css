@@ -62,6 +62,24 @@ body {
 .brand h1 { font-size: 1.35rem; letter-spacing: 0.02em; }
 .tagline { font-size: 0.8rem; color: var(--text-soft); }
 
+.header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.auth { display: flex; align-items: center; gap: 10px; min-height: 32px; }
+/* 作者樣式的 display 會蓋過 hidden 屬性，需明確補回 */
+.auth[hidden] { display: none; }
+.auth-user { font-size: 0.82rem; color: var(--text); font-weight: 600; }
+.link-btn {
+  font: inherit;
+  font-size: 0.78rem;
+  background: none;
+  border: none;
+  color: var(--text-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  padding: 0;
+}
+.link-btn:hover { color: var(--accent); }
+
 .issue-picker { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-soft); }
 .issue-picker select {
   font: inherit;
@@ -172,7 +190,7 @@ main { max-width: 760px; margin: 0 auto; padding: 20px; }
 .sources a { color: var(--text-soft); text-decoration: underline; text-underline-offset: 3px; }
 .sources a:hover { color: var(--accent); }
 
-.feedback {
+.card-actions {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -183,6 +201,22 @@ main { max-width: 760px; margin: 0 auto; padding: 20px; }
   color: var(--text-soft);
   flex-wrap: wrap;
 }
+.save-btn {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 3px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-soft);
+  cursor: pointer;
+  margin-right: 4px;
+}
+.save-btn:hover { border-color: var(--accent); color: var(--accent); }
+.save-btn.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+.tab.saved-tab { margin-left: auto; }
+.tab.saved-tab[hidden] { display: none; }
 .fb-btn {
   font: inherit;
   font-size: 0.78rem;

@@ -1,5 +1,6 @@
 {
-  "_說明": "網站設定。feedback_endpoint 填入 Apps Script 部署後的網頁應用程式網址；留空則網站不顯示回饋按鈕。",
+  "_說明": "網站設定。feedback_endpoint 填入 Apps Script 部署後的網頁應用程式網址；留空則網站不顯示回饋按鈕。google_client_id 填入 Google Cloud Console 的 OAuth 用戶端 ID；留空則不顯示登入按鈕（收藏功能改存瀏覽器本機）。",
+  "google_client_id": "",
   "feedback_endpoint": "https://script.google.com/macros/s/AKfycbyMTtCxahynslZOc89fViy_KPM3PWiokuOEysLqTjxSIvu3Ek23DjSuMCxzlp1D8RXtrg/exec",
   "feedback_sheet_id": "1ErsxKhXDYsfytsnTTt-nLkGJPAPjjwa-dWMkeC2HwhU"
 }
