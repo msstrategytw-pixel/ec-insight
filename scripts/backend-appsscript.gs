@@ -45,6 +45,16 @@ function doGet() {
   return json({ ok: true, service: 'ec-insight backend' });
 }
 
+/**
+ * 首次部署（或程式新增了對外請求）後，在編輯器選這個函式按「執行」一次，
+ * 依提示完成授權。授權後網頁應用程式才能驗證 Google 登入憑證。
+ */
+function authorize() {
+  UrlFetchApp.fetch('https://oauth2.googleapis.com/tokeninfo?id_token=x', { muteHttpExceptions: true });
+  SpreadsheetApp.openById(SHEET_ID).getName();
+  Logger.log('授權完成');
+}
+
 // ---- 動作 ----
 
 function handleFeedback(data) {
