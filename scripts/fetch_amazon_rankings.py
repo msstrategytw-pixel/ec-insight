@@ -20,11 +20,18 @@ UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
 LIMIT = 20
 
-def fetch(slug):
+def fetch(slug, attempts=3):
+    """連續請求會觸發 Amazon 的 bot 檢查（回傳 captcha 頁），失敗時退避重試。"""
     url = f"https://www.amazon.co.jp/gp/bestsellers/{slug}/"
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept-Language": "ja,en;q=0.8"})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return r.read().decode("utf-8", errors="ignore")
+    last = ""
+    for i in range(attempts):
+        with urllib.request.urlopen(req, timeout=30) as r:
+            last = r.read().decode("utf-8", errors="ignore")
+        if "captcha" not in last.lower() and "data-client-recs-list" in last:
+            return last
+        time.sleep(8 * (i + 1))
+    return last
 
 def parse_recs_json(text):
     m = re.search(r'data-client-recs-list="([^"]+)"', text)
@@ -69,7 +76,7 @@ def main():
             items, status = [], f"FAILED: {e}"
         out["categories"].append({"category": name, "slug": slug, "items": items})
         print(f"{name}({slug}): {status}")
-        time.sleep(2)
+        time.sleep(5)
     path = f"/Users/abelxchu/Developer/ec-insight/docs/data/rankings/amazon-jp-{today}.json"
     with open(path, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
