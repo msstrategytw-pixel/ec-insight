@@ -5,10 +5,10 @@
 ## 架構總覽
 
 ```
-Google Docs（同事編輯方針）
+編輯方針/（顧問直接改 md，repo 即唯一來源）
    ↓ 每週一 07:00
 排程雲端 agent（Claude Code routine，走訂閱額度，無 API 金鑰）
-   讀方針 → 蒐集 → 評分 → 產出新一期 → commit push
+   讀方針 → 讀上期回饋 → 蒐集 → 評分 → 產出新一期 → commit push
    ↓
 GitHub repo（存檔＋版本紀錄）
    ↓ 自動
@@ -18,8 +18,6 @@ GitHub Pages（情報網站，main 分支 /docs）
 - 分工、執行流程、修改流程 → [流程說明.md](流程說明.md)
 - Agent 每次執行的完整指示（runbook）→ [WEEKLY_AGENT.md](WEEKLY_AGENT.md)
 
-> ⚠️ 方針內容只能在 Google Docs 改。`編輯方針/*.md` 是每次執行時匯出的快照，直接改會被覆寫。
-
 ## 目錄結構
 
 ```
@@ -27,7 +25,6 @@ ec-insight/
 ├── 流程說明.md        ← 分工與流程（流程有變動時更新這份）
 ├── WEEKLY_AGENT.md   ← 排程 agent 的執行指示（人也可讀，即 runbook）
 ├── 編輯方針/          ← agent 的「大腦設定」，顧問可改（見其 README）
-│   ├── doc-ids.json  ← 對應的 Google Doc ID（填入後 agent 以 Docs 為準）
 │   ├── 產業清單.md
 │   ├── 電商經營-蒐集方針.md
 │   ├── 市場動態-蒐集方針.md
