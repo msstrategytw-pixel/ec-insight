@@ -1,0 +1,13 @@
+{
+  "_說明": "市場動態 tab 的產業分類。active=false 者在網站上以反灰顯示（MVP 階段暫不蒐集）。內容須與「產業清單」方針文件一致。",
+  "industries": [
+    { "name": "電子3C", "active": true },
+    { "name": "醫療與保健", "active": false },
+    { "name": "美食", "active": true },
+    { "name": "流行服飾", "active": false },
+    { "name": "美妝保養＆個人護理", "active": true },
+    { "name": "居家生活", "active": false },
+    { "name": "寵物", "active": false },
+    { "name": "家庭婦幼", "active": false }
+  ]
+}

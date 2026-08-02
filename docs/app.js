@@ -1,5 +1,6 @@
 const state = {
   issues: [],
+  industries: [],
   data: null,
   tab: "ops",
   industry: null,
@@ -8,7 +9,11 @@ const state = {
 const $ = (sel) => document.querySelector(sel);
 
 async function loadIndex() {
-  const res = await fetch("data/index.json");
+  const [res, indRes] = await Promise.all([
+    fetch("data/index.json"),
+    fetch("data/industries.json"),
+  ]);
+  state.industries = (await indRes.json()).industries;
   const idx = await res.json();
   state.issues = idx.issues.slice().sort((a, b) => b.date.localeCompare(a.date));
   const select = $("#issue-select");
@@ -44,7 +49,10 @@ function itemCard(item) {
   meta.push(
     `<span class="score ${total >= 12 ? "high" : ""}" title="影響廣度 ${item.score.breadth}・行動性 ${item.score.action}・時效性 ${item.score.timeliness}">評分 ${total}</span>`
   );
-  for (const ind of item.industries) meta.push(`<span class="tag">${ind}</span>`);
+  // 產業標籤只在市場動態 tab 顯示
+  if (item.tab === "market") {
+    for (const ind of item.industries) meta.push(`<span class="tag">${ind}</span>`);
+  }
   for (const flag of item.flags) meta.push(`<span class="flag">⚠ ${flag}</span>`);
   const sources = item.sources
     .map((s) => `<a href="${s.url}" target="_blank" rel="noopener">${s.name}</a>`)
@@ -64,19 +72,19 @@ function render() {
   const published = items.filter((i) => i.published);
   const unpublished = items.filter((i) => !i.published);
 
-  // 市場動態 tab 才顯示產業篩選
+  // 只有市場動態 tab 分產業
   const filterEl = $("#industry-filter");
   if (state.tab === "market") {
-    const industries = [...new Set(published.flatMap((i) => i.industries))];
-    filterEl.hidden = industries.length === 0;
+    filterEl.hidden = false;
     filterEl.innerHTML = [
       `<button class="chip ${state.industry === null ? "active" : ""}" data-ind="">全部</button>`,
-      ...industries.map(
-        (ind) =>
-          `<button class="chip ${state.industry === ind ? "active" : ""}" data-ind="${ind}">${ind}</button>`
+      ...state.industries.map((ind) =>
+        ind.active
+          ? `<button class="chip ${state.industry === ind.name ? "active" : ""}" data-ind="${ind.name}">${ind.name}</button>`
+          : `<button class="chip inactive" disabled title="MVP 階段尚未納入蒐集">${ind.name}</button>`
       ),
     ].join("");
-    filterEl.querySelectorAll(".chip").forEach((btn) =>
+    filterEl.querySelectorAll(".chip:not([disabled])").forEach((btn) =>
       btn.addEventListener("click", () => {
         state.industry = btn.dataset.ind || null;
         render();
