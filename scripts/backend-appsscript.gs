@@ -19,8 +19,8 @@ const SITE_URL = 'https://msstrategytw-pixel.github.io/ec-insight/';
 const TAB_NAMES = { ops: '電商經營', market: '市場動態', external: '外站趨勢' };
 
 const FEEDBACK_HEADERS = ['時間', '回饋者', '期別', '條目ID', '分類', '標題', '評價', '原因'];
-const SAVE_HEADERS = ['時間', 'Email', '條目ID', '期別', '標題', '狀態'];
-const SUB_HEADERS = ['時間', 'Email', '姓名', '訂閱狀態'];
+const SAVE_HEADERS = ['Email', '條目ID', '期別', '標題', '收藏', '更新時間'];
+const SUB_HEADERS = ['Email', '姓名', '訂閱', '更新時間'];
 
 // ---- 進入點 ----
 
@@ -182,20 +182,20 @@ function handleFeedback(user, data) {
 
 function handleSave(user, data, action) {
   const sheet = tab('收藏', SAVE_HEADERS);
-  sheet.appendRow([
-    new Date(), user.email, data.item_id || '', data.issue || '',
-    data.title || '', action === 'save' ? 'saved' : 'removed',
+  // 一人一項一列：以 (Email, 條目ID) 為鍵就地更新收藏 TRUE/FALSE
+  upsertRow_(sheet, [0, 1], [user.email, data.item_id || ''], [
+    user.email, data.item_id || '', data.issue || '', data.title || '',
+    action === 'save', new Date(),
   ]);
   return { ok: true };
 }
 
 function handleSub(user, action) {
   const sheet = tab('訂閱', SUB_HEADERS);
-  sheet.appendRow([
-    new Date(), user.email, user.name || '',
-    action === 'subscribe' ? 'subscribed' : 'unsubscribed',
-  ]);
-  return { ok: true, subscribed: action === 'subscribe' };
+  const subscribed = action === 'subscribe';
+  // 一人一列：以 Email 為鍵就地更新訂閱 TRUE/FALSE
+  upsertRow_(sheet, [0], [user.email], [user.email, user.name || '', subscribed, new Date()]);
+  return { ok: true, subscribed: subscribed };
 }
 
 /** 登入時呼叫：把本機既有收藏合併上來，並回傳伺服器端的最新狀態。 */
@@ -204,47 +204,54 @@ function handleSync(user, localSaved) {
   const sheet = tab('收藏', SAVE_HEADERS);
   localSaved.forEach(function (id) {
     if (!saved.has(id)) {
-      sheet.appendRow([new Date(), user.email, id, '', '(本機合併)', 'saved']);
+      upsertRow_(sheet, [0, 1], [user.email, id], [user.email, id, '', '(本機合併)', true, new Date()]);
       saved.add(id);
     }
   });
   return { ok: true, email: user.email, saved: Array.from(saved), subscribed: isSubscribed(user.email) };
 }
 
-// ---- 查詢目前狀態（附加式紀錄取最新） ----
+// ---- 查詢目前狀態（一人一列，直接讀該列） ----
 
 function savedSetOf(email) {
   const rows = tab('收藏', SAVE_HEADERS).getDataRange().getValues().slice(1);
-  const latest = {};
-  rows.forEach(function (r) {
-    if (r[1] === email && r[2]) latest[r[2]] = r[5];
-  });
   const out = new Set();
-  Object.keys(latest).forEach(function (id) {
-    if (latest[id] === 'saved') out.add(id);
+  rows.forEach(function (r) {
+    if (r[0] === email && r[1] && r[4] === true) out.add(r[1]);
   });
   return out;
 }
 
 function isSubscribed(email) {
   const rows = tab('訂閱', SUB_HEADERS).getDataRange().getValues().slice(1);
-  let status = '';
-  rows.forEach(function (r) {
-    if (r[1] === email) status = r[3];
-  });
-  return status === 'subscribed';
+  for (var i = 0; i < rows.length; i++) {
+    if (rows[i][0] === email) return rows[i][2] === true;
+  }
+  return false;
 }
 
 /** 電子報寄送時使用：回傳目前訂閱者 email 陣列。 */
 function currentSubscribers() {
   const rows = tab('訂閱', SUB_HEADERS).getDataRange().getValues().slice(1);
-  const latest = {};
-  rows.forEach(function (r) {
-    if (r[1]) latest[r[1]] = r[3];
-  });
-  return Object.keys(latest).filter(function (e) {
-    return latest[e] === 'subscribed';
-  });
+  return rows
+    .filter(function (r) { return r[2] === true; })
+    .map(function (r) { return r[0]; });
+}
+
+/** upsert：keyCols（0 起算的欄索引）比對 keyVals，找到就整列覆寫，沒有就新增。 */
+function upsertRow_(sheet, keyCols, keyVals, rowVals) {
+  const data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    var match = true;
+    for (var k = 0; k < keyCols.length; k++) {
+      if (data[i][keyCols[k]] !== keyVals[k]) { match = false; break; }
+    }
+    if (match) {
+      sheet.getRange(i + 1, 1, 1, rowVals.length).setValues([rowVals]);
+      return;
+    }
+  }
+  sheet.appendRow(rowVals);
 }
 
 // ---- 驗證與工具 ----
