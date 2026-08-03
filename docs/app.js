@@ -79,42 +79,47 @@ function scoreTotal(s) {
   return s.breadth + s.action + s.timeliness;
 }
 
-/** 產業勾選清單：掛在側欄「市場動態」底下，可複選，只在該分類的期別檢視出現。 */
+/** 產業勾選清單：固定顯示於側欄「市場動態」底下，可複選。
+ *  勾選時若不在市場動態檢視，會自動切換過去（產業篩選只作用於市場動態）。 */
 function renderIndustryChecks() {
   const el = $("#industry-nav");
-  const show = state.view === "issue" && state.tab === "market";
-  el.hidden = !show;
-  if (!show) {
-    el.innerHTML = "";
-    return;
-  }
-  // 各產業本期刊登則數
-  const marketItems = state.data.items.filter((i) => i.tab === "market" && i.published);
+  // 只在市場動態的期別檢視顯示則數，其他情境（如當前在別的分頁）則數留白
+  const onMarket = state.view === "issue" && state.tab === "market";
+  const marketItems = state.data
+    ? state.data.items.filter((i) => i.tab === "market" && i.published)
+    : [];
   const counts = {};
-  marketItems.forEach((i) => i.industries.forEach((n) => (counts[n] = (counts[n] || 0) + 1)));
+  if (onMarket) marketItems.forEach((i) => i.industries.forEach((n) => (counts[n] = (counts[n] || 0) + 1)));
+  const cnt = (n) => (onMarket ? `<span class="cnt">${counts[n] || 0}</span>` : "");
+
   el.innerHTML = [
     `<label class="ind-check ${state.indSel.size === 0 ? "checked" : ""}">
        <input type="checkbox" data-ind="" ${state.indSel.size === 0 ? "checked" : ""}>全部
-       <span class="cnt">${marketItems.length}</span></label>`,
+       ${onMarket ? `<span class="cnt">${marketItems.length}</span>` : ""}</label>`,
     // 已啟用的排前面，待開發的沉到最後
     ...[...state.industries]
       .sort((a, b) => Number(b.active) - Number(a.active))
       .map((ind) =>
-      ind.active
-        ? `<label class="ind-check ${state.indSel.has(ind.name) ? "checked" : ""}">
-             <input type="checkbox" data-ind="${ind.name}" ${state.indSel.has(ind.name) ? "checked" : ""}>${ind.name}
-             <span class="cnt">${counts[ind.name] || 0}</span></label>`
-        : `<label class="ind-check pending" title="尚未納入蒐集範圍">
-             <input type="checkbox" disabled>${ind.name}
-             <span class="soon">待開發</span></label>`
-    ),
+        ind.active
+          ? `<label class="ind-check ${state.indSel.has(ind.name) ? "checked" : ""}">
+               <input type="checkbox" data-ind="${ind.name}" ${state.indSel.has(ind.name) ? "checked" : ""}>${ind.name}
+               ${cnt(ind.name)}</label>`
+          : `<label class="ind-check pending" title="尚未納入蒐集範圍">
+               <input type="checkbox" disabled>${ind.name}
+               <span class="soon">待開發</span></label>`
+      ),
   ].join("");
-  el.querySelectorAll("input").forEach((cb) =>
+  el.querySelectorAll("input:not([disabled])").forEach((cb) =>
     cb.addEventListener("change", () => {
       const name = cb.dataset.ind;
       if (!name) state.indSel.clear(); // 勾「全部」＝清空個別選擇
       else if (cb.checked) state.indSel.add(name);
       else state.indSel.delete(name);
+      // 在其他分頁調整產業 → 自動切到市場動態
+      state.view = "issue";
+      state.tab = "market";
+      state.query = "";
+      $("#search").value = "";
       render();
     })
   );

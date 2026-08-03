@@ -53,11 +53,16 @@ body {
   flex: none;
   position: sticky;
   top: 0;
-  max-height: 100vh;
+  height: 100vh;
   padding: 22px 0 18px;
   display: flex;
   flex-direction: column;
-  /* 內容超過視窗高度時自行捲動，底部的登入資訊才不會被切掉 */
+}
+
+/* 導覽區可捲動，登入資訊固定在下方不受影響 */
+.side-scroll {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;
 }
@@ -122,9 +127,8 @@ body {
   line-height: 1.5;
 }
 
-/* 市場動態底下的產業勾選 */
+/* 市場動態底下的產業勾選（固定顯示） */
 .ind-checks { display: flex; flex-direction: column; margin: 1px 0 4px; }
-.ind-checks[hidden] { display: none; }
 .ind-check {
   display: flex;
   align-items: center;
@@ -162,7 +166,12 @@ body {
   white-space: nowrap;
 }
 
-.sidebar-foot { margin-top: auto; padding: 16px 12px 0; }
+.sidebar-foot {
+  flex: none;
+  padding: 14px 12px 0;
+  margin-top: 8px;
+  border-top: 1px solid var(--hairline);
+}
 .auth { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
 .auth[hidden] { display: none; }
 .auth-user { font-size: 0.82rem; font-weight: 600; }
@@ -404,10 +413,10 @@ body {
   .sidebar {
     width: auto;
     position: static;
-    max-height: none;
-    overflow-y: visible;
+    height: auto;
     padding: 20px 0 8px;
   }
+  .side-scroll { overflow-y: visible; }
   .brand { padding: 0; margin-bottom: 16px; }
   .side-label { display: none; }
   .side-section { flex-direction: row; gap: 8px; margin-bottom: 8px; }
@@ -420,7 +429,7 @@ body {
   .ind-checks { order: 1; flex-basis: 100%; flex-direction: row; flex-wrap: wrap; gap: 2px 6px; margin: 6px 0 0; }
   .ind-check { padding: 4px 10px; white-space: nowrap; }
   .ind-check .cnt { margin-left: 4px; }
-  .sidebar-foot { margin-top: 14px; padding: 0; }
+  .sidebar-foot { margin-top: 14px; padding: 12px 0 0; }
   .auth { flex-direction: row; align-items: center; }
   .content { max-width: none; padding-top: 18px; }
   .card { padding: 20px 18px; }
