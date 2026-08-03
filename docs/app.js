@@ -415,7 +415,7 @@ function openFeedbackForm(form, box, id, issueDate, verdict) {
 
 function render() {
   updateSavedCount();
-  document.querySelectorAll(".tab").forEach((b) =>
+  document.querySelectorAll(".nav-item[data-tab]").forEach((b) =>
     b.classList.toggle("active", state.view === "issue" && b.dataset.tab === state.tab)
   );
   $("#saved-btn").classList.toggle("active", state.view === "saved");
@@ -480,7 +480,7 @@ function render() {
   bindCardActions();
 }
 
-document.querySelectorAll(".tab").forEach((btn) =>
+document.querySelectorAll(".nav-item[data-tab]").forEach((btn) =>
   btn.addEventListener("click", () => {
     state.view = "issue";
     state.query = "";
