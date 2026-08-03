@@ -128,7 +128,18 @@ async function callBackend(payload) {
     method: "POST",
     body: JSON.stringify(payload),
   });
-  const out = await res.json();
+  const text = await res.text();
+  let out;
+  try {
+    out = JSON.parse(text);
+  } catch {
+    // 收到 HTML 通常是 Google 把請求導去登入或授權頁，把實際內容帶出來方便診斷
+    const title = (text.match(/<title>([^<]*)<\/title>/i) || [])[1] || "";
+    const snippet = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 120);
+    throw new Error(
+      `後端回應不是資料而是網頁（HTTP ${res.status}${title ? "，標題：" + title : ""}）：${snippet}`
+    );
+  }
   if (!out.ok) throw new Error(out.error || "unknown error");
   return out;
 }
