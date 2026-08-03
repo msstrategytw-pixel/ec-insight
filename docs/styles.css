@@ -168,13 +168,85 @@ body {
 
 .sidebar-foot {
   flex: none;
-  padding: 14px 12px 0;
+  padding: 12px 12px 0;
   margin-top: 8px;
   border-top: 1px solid var(--hairline);
 }
-.auth { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
 .auth[hidden] { display: none; }
-.auth-user { font-size: 0.82rem; font-weight: 600; }
+
+/* 帳號卡片（已登入） */
+.acct-card {
+  background: var(--surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+  padding: 10px 12px;
+}
+.acct-head { display: flex; align-items: center; gap: 10px; }
+.acct-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  flex: none;
+  object-fit: cover;
+}
+.acct-avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.acct-id { min-width: 0; }
+.acct-name { font-size: 0.82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acct-email { font-size: 0.7rem; color: var(--text-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.acct-actions { border-top: 1px solid var(--hairline); margin: 10px -12px 0; padding: 4px 8px 0; }
+.acct-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 4px;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--text-soft);
+}
+.acct-row:hover { background: rgba(0, 0, 0, 0.03); color: var(--text); }
+.acct-row-label { display: flex; align-items: center; gap: 7px; }
+.acct-ico { font-style: normal; font-size: 0.9rem; width: 15px; text-align: center; opacity: 0.75; }
+
+.acct-switch {
+  width: 30px;
+  height: 17px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.18);
+  position: relative;
+  flex: none;
+  transition: background 0.15s;
+}
+.acct-switch.on { background: var(--accent); }
+.acct-switch.busy { opacity: 0.5; }
+.acct-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s;
+}
+.acct-switch.on .acct-knob { transform: translateX(13px); }
+
+/* 未登入 */
+.signin-prompt { font-size: 0.76rem; color: var(--text-soft); line-height: 1.5; margin-bottom: 9px; }
 
 /* ---- 內容區 ---- */
 
@@ -430,7 +502,7 @@ body {
   .ind-check { padding: 4px 10px; white-space: nowrap; }
   .ind-check .cnt { margin-left: 4px; }
   .sidebar-foot { margin-top: 14px; padding: 12px 0 0; }
-  .auth { flex-direction: row; align-items: center; }
+  .acct-card { max-width: 280px; }
   .content { max-width: none; padding-top: 18px; }
   .card { padding: 20px 18px; }
 }

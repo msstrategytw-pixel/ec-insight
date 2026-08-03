@@ -220,7 +220,7 @@ function initAuth() {
       const claims = decodeJwt(saved);
       // 憑證有效期約一小時，過期就當作未登入
       if (claims.exp * 1000 > Date.now()) {
-        state.auth = { token: saved, email: claims.email, name: claims.name };
+        state.auth = { token: saved, email: claims.email, name: claims.name, picture: claims.picture };
         syncFromServer();
       } else {
         localStorage.removeItem(LS_TOKEN);
@@ -232,7 +232,7 @@ function initAuth() {
 
   window.onGoogleCredential = (resp) => {
     const claims = decodeJwt(resp.credential);
-    state.auth = { token: resp.credential, email: claims.email, name: claims.name };
+    state.auth = { token: resp.credential, email: claims.email, name: claims.name, picture: claims.picture };
     localStorage.setItem(LS_TOKEN, resp.credential);
     syncFromServer();
     renderAuth();
@@ -252,10 +252,30 @@ function initAuth() {
 function renderAuth() {
   const box = $("#auth");
   if (state.auth) {
+    const name = state.auth.name || state.auth.email;
+    const initial = (name || "?").trim().charAt(0);
+    const avatar = state.auth.picture
+      ? `<img class="acct-avatar" src="${state.auth.picture}" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'acct-avatar acct-avatar-fallback',textContent:'${initial}'}))">`
+      : `<span class="acct-avatar acct-avatar-fallback">${initial}</span>`;
     box.innerHTML = `
-      <span class="auth-user" title="${state.auth.email}">${state.auth.name || state.auth.email}</span>
-      <button class="link-btn" id="sub-btn">${state.subscribed ? "✓ 已訂閱電子報" : "訂閱電子報"}</button>
-      <button class="link-btn" id="signout-btn">登出</button>`;
+      <div class="acct-card">
+        <div class="acct-head">
+          ${avatar}
+          <div class="acct-id">
+            <div class="acct-name">${name}</div>
+            <div class="acct-email" title="${state.auth.email}">${state.auth.email}</div>
+          </div>
+        </div>
+        <div class="acct-actions">
+          <button class="acct-row" id="sub-btn">
+            <span class="acct-row-label"><i class="acct-ico">✉</i>訂閱電子報</span>
+            <span class="acct-switch ${state.subscribed ? "on" : ""}" id="sub-switch"><span class="acct-knob"></span></span>
+          </button>
+          <button class="acct-row" id="signout-btn">
+            <span class="acct-row-label"><i class="acct-ico">⏻</i>登出</span>
+          </button>
+        </div>
+      </div>`;
     $("#sub-btn").addEventListener("click", toggleSubscribe);
     $("#signout-btn").addEventListener("click", () => {
       state.auth = null;
@@ -267,7 +287,9 @@ function renderAuth() {
       render();
     });
   } else {
-    box.innerHTML = `<div id="gsi-btn"></div>`;
+    box.innerHTML = `
+      <p class="signin-prompt">登入以收藏條目、給予回饋</p>
+      <div id="gsi-btn"></div>`;
     if (window.google?.accounts?.id) {
       google.accounts.id.renderButton($("#gsi-btn"), {
         type: "standard",
@@ -296,9 +318,10 @@ async function syncFromServer() {
 
 async function toggleSubscribe() {
   const btn = $("#sub-btn");
+  const sw = $("#sub-switch");
   const next = !state.subscribed;
   btn.disabled = true;
-  btn.textContent = "處理中…";
+  sw.classList.add("busy");
   try {
     await callBackend({
       action: next ? "subscribe" : "unsubscribe",
@@ -308,7 +331,6 @@ async function toggleSubscribe() {
   } catch (err) {
     alert("設定失敗：" + err.message);
   }
-  btn.disabled = false;
   renderAuth();
 }
 
