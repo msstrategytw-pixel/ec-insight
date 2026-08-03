@@ -4,7 +4,7 @@ const state = {
   config: {},
   data: null,
   tab: "ops",
-  industry: null,
+  indSel: new Set(), // 市場動態的產業複選；空集合＝全部
   view: "issue", // issue | saved | search
   query: "",
   auth: null, // { token, email, name }
@@ -41,7 +41,7 @@ async function loadIndex() {
 
 async function loadIssue(date) {
   state.data = await fetchIssue(date);
-  state.industry = null;
+  state.indSel = new Set();
   $("#policy-version").textContent = ` ${state.data.policy_version} `;
   const noteEl = $("#editor-note");
   if (state.data.editor_note) {
@@ -74,26 +74,36 @@ function scoreTotal(s) {
   return s.breadth + s.action + s.timeliness;
 }
 
-/** 產業選項掛在側欄「市場動態」底下，只在該分類的期別檢視時出現。 */
-function renderIndustryNav() {
-  const el = $("#industry-nav");
+/** 產業篩選：內容區頂部的文字列，可複選（點擊切換），只在市場動態的期別檢視出現。 */
+function renderIndustryRow() {
+  const el = $("#industry-filter");
   const show = state.view === "issue" && state.tab === "market";
   el.hidden = !show;
   if (!show) {
     el.innerHTML = "";
     return;
   }
+  // 各產業本期刊登則數，未啟用產業不顯示
+  const counts = {};
+  state.data.items
+    .filter((i) => i.tab === "market" && i.published)
+    .forEach((i) => i.industries.forEach((n) => (counts[n] = (counts[n] || 0) + 1)));
   el.innerHTML = [
-    `<button class="sub-item ${state.industry === null ? "active" : ""}" data-ind="">全部</button>`,
-    ...state.industries.map((ind) =>
-      ind.active
-        ? `<button class="sub-item ${state.industry === ind.name ? "active" : ""}" data-ind="${ind.name}">${ind.name}</button>`
-        : `<button class="sub-item inactive" disabled title="MVP 階段尚未納入蒐集">${ind.name}</button>`
-    ),
+    `<button class="ind-link ${state.indSel.size === 0 ? "active" : ""}" data-ind="">全部</button>`,
+    ...state.industries
+      .filter((ind) => ind.active)
+      .map(
+        (ind) =>
+          `<button class="ind-link ${state.indSel.has(ind.name) ? "active" : ""}" data-ind="${ind.name}">${ind.name}<span class="ind-count">${counts[ind.name] || 0}</span></button>`
+      ),
+    `<span class="ind-note">其餘產業陸續納入</span>`,
   ].join("");
-  el.querySelectorAll(".sub-item:not([disabled])").forEach((btn) =>
+  el.querySelectorAll(".ind-link").forEach((btn) =>
     btn.addEventListener("click", () => {
-      state.industry = btn.dataset.ind || null;
+      const name = btn.dataset.ind;
+      if (!name) state.indSel.clear();
+      else if (state.indSel.has(name)) state.indSel.delete(name);
+      else state.indSel.add(name);
       render();
     })
   );
@@ -325,7 +335,7 @@ function updateSavedCount() {
 
 async function renderSavedView() {
   const all = (await allItems()).filter(({ item }) => state.saved.has(item.id));
-  renderIndustryNav();
+  renderIndustryRow();
   $("#unpublished").hidden = true;
   $("#editor-note").hidden = true;
   $("#items").innerHTML = all.length
@@ -353,7 +363,7 @@ function matches(item, terms) {
 async function renderSearchView() {
   const terms = state.query.toLowerCase().split(/\s+/).filter(Boolean);
   const hits = (await allItems()).filter(({ item }) => matches(item, terms));
-  renderIndustryNav();
+  renderIndustryRow();
   $("#unpublished").hidden = true;
   $("#editor-note").hidden = true;
   $("#search-count").textContent = `找到 ${hits.length} 則（搜尋全部 ${state.issues.length} 期）`;
@@ -463,11 +473,11 @@ function render() {
   const published = items.filter((i) => i.published);
   const unpublished = items.filter((i) => !i.published);
 
-  renderIndustryNav();
+  renderIndustryRow();
 
   const visible =
-    state.tab === "market" && state.industry
-      ? published.filter((i) => i.industries.includes(state.industry))
+    state.tab === "market" && state.indSel.size > 0
+      ? published.filter((i) => i.industries.some((n) => state.indSel.has(n)))
       : published;
 
   $("#items").innerHTML =
@@ -494,7 +504,7 @@ document.querySelectorAll(".nav-item[data-tab]").forEach((btn) =>
     state.query = "";
     $("#search").value = "";
     state.tab = btn.dataset.tab;
-    state.industry = null;
+    state.indSel = new Set();
     render();
   })
 );
