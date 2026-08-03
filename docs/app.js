@@ -105,6 +105,7 @@ function itemCard(item, issueDate) {
       <div class="why"><strong>對商家的意義</strong>　${item.why_it_matters}</div>
       <div class="sources">來源：${sources}</div>
       <div class="card-actions" data-id="${item.id}" data-issue="${issueDate}">${actions}</div>
+      <div class="fb-form" hidden></div>
     </article>`;
 }
 
@@ -298,38 +299,70 @@ function bindCardActions() {
     const saveBtn = box.querySelector(".save-btn");
     if (saveBtn) saveBtn.addEventListener("click", () => toggleSave(id, issueDate, saveBtn));
 
+    const form = box.parentElement.querySelector(".fb-form");
     box.querySelectorAll(".fb-btn").forEach((btn) =>
-      btn.addEventListener("click", async () => {
+      btn.addEventListener("click", () => {
         if (!state.auth) return;
-        const issue = await fetchIssue(issueDate);
-        const item = issue.items.find((i) => i.id === id);
-        const verdict = btn.dataset.verdict;
-        const note =
-          verdict === "沒用"
-            ? (window.prompt("為什麼沒用？（選填，一句話就好，會用來調整選材標準）") || "").trim()
-            : "";
-        const keep = box.querySelector(".save-btn").outerHTML;
-        box.innerHTML = `${keep}<span class="feedback-q">送出中…</span>`;
-        try {
-          // 回饋者身分由後端從登入憑證取得，不由前端傳入
-          await callBackend({
-            action: "feedback",
-            id_token: state.auth.token,
-            issue: issueDate,
-            item_id: id,
-            tab: item ? item.tab : "",
-            title: item ? item.title : "",
-            verdict,
-            note,
-          });
-          box.innerHTML = `${keep}<span class="feedback-done">✓ 已記錄「${verdict}」，謝謝</span>`;
-        } catch (err) {
-          box.innerHTML = `${keep}<span class="feedback-err">送出失敗（${err.message}）</span>`;
-        }
-        const b = box.querySelector(".save-btn");
-        if (b) b.addEventListener("click", () => toggleSave(id, issueDate, b));
+        box.querySelectorAll(".fb-btn").forEach((b) => b.classList.remove("picked"));
+        btn.classList.add("picked");
+        openFeedbackForm(form, box, id, issueDate, btn.dataset.verdict);
       })
     );
+  });
+}
+
+/** 內嵌回饋表單：有用與沒用都必須寫原因，AI 才學得到「好在哪」與「壞在哪」。 */
+function openFeedbackForm(form, box, id, issueDate, verdict) {
+  const good = verdict === "有用";
+  form.hidden = false;
+  form.innerHTML = `
+    <label class="fb-label">${good ? "這則哪裡有用？" : "為什麼沒用？"}（必填，一句話就好，會用來調整選材標準）</label>
+    <textarea class="fb-note" rows="2" placeholder="${good ? "例：有明確截止日，可以直接拿去提醒商家" : "例：沒有具體數字，讀完不知道能做什麼"}"></textarea>
+    <div class="fb-form-actions">
+      <button class="fb-submit" disabled>送出「${good ? "👍 有用" : "👎 沒用"}」</button>
+      <button class="link-btn fb-cancel">取消</button>
+      <span class="fb-status"></span>
+    </div>`;
+
+  const note = form.querySelector(".fb-note");
+  const submit = form.querySelector(".fb-submit");
+  const status = form.querySelector(".fb-status");
+  note.focus();
+  note.addEventListener("input", () => {
+    submit.disabled = note.value.trim().length === 0;
+  });
+
+  form.querySelector(".fb-cancel").addEventListener("click", () => {
+    form.hidden = true;
+    form.innerHTML = "";
+    box.querySelectorAll(".fb-btn").forEach((b) => b.classList.remove("picked"));
+  });
+
+  submit.addEventListener("click", async () => {
+    submit.disabled = true;
+    status.className = "fb-status";
+    status.textContent = "送出中…";
+    try {
+      const issue = await fetchIssue(issueDate);
+      const item = issue.items.find((i) => i.id === id);
+      // 回饋者身分由後端從登入憑證取得，不由前端傳入
+      await callBackend({
+        action: "feedback",
+        id_token: state.auth.token,
+        issue: issueDate,
+        item_id: id,
+        tab: item ? item.tab : "",
+        title: item ? item.title : "",
+        verdict,
+        note: note.value.trim(),
+      });
+      form.innerHTML = `<span class="feedback-done">✓ 已記錄「${verdict}」，謝謝</span>`;
+      box.querySelectorAll(".fb-btn").forEach((b) => (b.disabled = true));
+    } catch (err) {
+      status.className = "fb-status feedback-err";
+      status.textContent = `送出失敗（${err.message}）`;
+      submit.disabled = false;
+    }
   });
 }
 
