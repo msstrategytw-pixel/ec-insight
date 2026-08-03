@@ -176,9 +176,8 @@ function renderAuth() {
   if (state.auth) {
     box.innerHTML = `
       <span class="auth-user" title="${state.auth.email}">${state.auth.name || state.auth.email}</span>
-      <button class="link-btn" id="sub-btn">${state.subscribed ? "✓ 已訂閱電子報" : "訂閱電子報"}</button>
+      <button class="link-btn" id="sub-btn" disabled title="電子報寄送功能尚未開放">訂閱電子報（尚未開放）</button>
       <button class="link-btn" id="signout-btn">登出</button>`;
-    $("#sub-btn").addEventListener("click", toggleSubscribe);
     $("#signout-btn").addEventListener("click", () => {
       state.auth = null;
       state.subscribed = false;
@@ -216,6 +215,7 @@ async function syncFromServer() {
   }
 }
 
+// 電子報寄送功能開放後，把上面的 sub-btn 改回可點並綁定這個函式
 async function toggleSubscribe() {
   const btn = $("#sub-btn");
   const next = !state.subscribed;

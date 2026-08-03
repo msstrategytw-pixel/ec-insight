@@ -79,6 +79,8 @@ body {
   padding: 0;
 }
 .link-btn:hover { color: var(--accent); }
+.link-btn:disabled { opacity: 0.4; cursor: not-allowed; text-decoration: none; }
+.link-btn:disabled:hover { color: var(--text-soft); }
 
 .issue-picker { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-soft); }
 .issue-picker select {
