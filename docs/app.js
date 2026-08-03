@@ -147,7 +147,8 @@ function itemCard(item, issueDate) {
 
 // ---- 後端 ----
 
-async function callBackend(payload) {
+// Apps Script 偶爾會回傳錯誤頁而非資料（部署傳播不穩定），故失敗時重試一次
+async function callBackend(payload, attempt = 0) {
   const res = await fetch(state.config.feedback_endpoint, {
     // 用預設的 text/plain 送出，避免觸發 CORS preflight
     method: "POST",
@@ -158,7 +159,10 @@ async function callBackend(payload) {
   try {
     out = JSON.parse(text);
   } catch {
-    // 收到 HTML 通常是 Google 把請求導去登入或授權頁，把實際內容帶出來方便診斷
+    if (attempt < 1) {
+      await new Promise((r) => setTimeout(r, 900));
+      return callBackend(payload, attempt + 1);
+    }
     const title = (text.match(/<title>([^<]*)<\/title>/i) || [])[1] || "";
     const snippet = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 120);
     throw new Error(
