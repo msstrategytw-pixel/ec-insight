@@ -5,7 +5,8 @@ const state = {
   data: null,
   tab: "ops",
   industry: null,
-  view: "issue", // issue | saved
+  view: "issue", // issue | saved | search
+  query: "",
   auth: null, // { token, email, name }
   saved: new Set(),
   subscribed: false,
@@ -57,6 +58,16 @@ async function fetchIssue(date) {
     state.issueCache[date] = await (await fetch(`data/${date}.json`)).json();
   }
   return state.issueCache[date];
+}
+
+/** 依時間新到舊回傳所有期別的條目（搜尋與收藏總覽共用）。 */
+async function allItems() {
+  const out = [];
+  for (const { date } of state.issues) {
+    const issue = await fetchIssue(date);
+    for (const item of issue.items) out.push({ item, date });
+  }
+  return out;
 }
 
 function scoreTotal(s) {
@@ -177,8 +188,9 @@ function renderAuth() {
   if (state.auth) {
     box.innerHTML = `
       <span class="auth-user" title="${state.auth.email}">${state.auth.name || state.auth.email}</span>
-      <button class="link-btn" id="sub-btn" disabled title="電子報寄送功能尚未開放">訂閱電子報（尚未開放）</button>
+      <button class="link-btn" id="sub-btn">${state.subscribed ? "✓ 已訂閱電子報" : "訂閱電子報"}</button>
       <button class="link-btn" id="signout-btn">登出</button>`;
+    $("#sub-btn").addEventListener("click", toggleSubscribe);
     $("#signout-btn").addEventListener("click", () => {
       state.auth = null;
       state.subscribed = false;
@@ -216,7 +228,6 @@ async function syncFromServer() {
   }
 }
 
-// 電子報寄送功能開放後，把上面的 sub-btn 改回可點並綁定這個函式
 async function toggleSubscribe() {
   const btn = $("#sub-btn");
   const next = !state.subscribed;
@@ -273,19 +284,42 @@ function updateSavedCount() {
 }
 
 async function renderSavedView() {
-  const all = [];
-  for (const { date } of state.issues) {
-    const issue = await fetchIssue(date);
-    for (const item of issue.items) {
-      if (state.saved.has(item.id)) all.push({ item, date });
-    }
-  }
+  const all = (await allItems()).filter(({ item }) => state.saved.has(item.id));
   $("#industry-filter").hidden = true;
   $("#unpublished").hidden = true;
   $("#editor-note").hidden = true;
   $("#items").innerHTML = all.length
     ? all.map(({ item, date }) => itemCard(item, date)).join("")
     : `<p class="empty">還沒有收藏任何條目</p>`;
+  bindCardActions();
+}
+
+// ---- 跨期搜尋 ----
+
+function matches(item, terms) {
+  const haystack = [
+    item.title,
+    item.summary,
+    item.why_it_matters,
+    item.industries.join(" "),
+    item.flags.join(" "),
+    item.sources.map((s) => s.name).join(" "),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return terms.every((t) => haystack.includes(t));
+}
+
+async function renderSearchView() {
+  const terms = state.query.toLowerCase().split(/\s+/).filter(Boolean);
+  const hits = (await allItems()).filter(({ item }) => matches(item, terms));
+  $("#industry-filter").hidden = true;
+  $("#unpublished").hidden = true;
+  $("#editor-note").hidden = true;
+  $("#search-count").textContent = `找到 ${hits.length} 則（搜尋全部 ${state.issues.length} 期）`;
+  $("#items").innerHTML = hits.length
+    ? hits.map(({ item, date }) => itemCard(item, date)).join("")
+    : `<p class="empty">沒有符合「${state.query}」的條目</p>`;
   bindCardActions();
 }
 
@@ -374,7 +408,12 @@ function render() {
     b.classList.toggle("active", state.view === "issue" && b.dataset.tab === state.tab)
   );
   $("#saved-btn").classList.toggle("active", state.view === "saved");
+  if (state.view !== "search") $("#search-count").textContent = "";
 
+  if (state.view === "search") {
+    renderSearchView();
+    return;
+  }
   if (state.view === "saved") {
     renderSavedView();
     return;
@@ -433,14 +472,36 @@ function render() {
 document.querySelectorAll(".tab").forEach((btn) =>
   btn.addEventListener("click", () => {
     state.view = "issue";
+    state.query = "";
+    $("#search").value = "";
     state.tab = btn.dataset.tab;
     state.industry = null;
     render();
   })
 );
 
+let searchTimer;
+$("#search").addEventListener("input", (e) => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    state.query = e.target.value.trim();
+    state.view = state.query ? "search" : "issue";
+    render();
+  }, 200);
+});
+$("#search").addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    e.target.value = "";
+    state.query = "";
+    state.view = "issue";
+    render();
+  }
+});
+
 $("#saved-btn").addEventListener("click", () => {
   state.view = state.view === "saved" ? "issue" : "saved";
+  state.query = "";
+  $("#search").value = "";
   render();
 });
 

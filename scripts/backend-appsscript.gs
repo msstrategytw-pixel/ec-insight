@@ -15,6 +15,8 @@
 
 const SHEET_ID = '1ErsxKhXDYsfytsnTTt-nLkGJPAPjjwa-dWMkeC2HwhU';
 const CLIENT_ID = '247318398256-ekedifvb0icn0ge5v1gcnti4n6i597br.apps.googleusercontent.com';
+const SITE_URL = 'https://msstrategytw-pixel.github.io/ec-insight/';
+const TAB_NAMES = { ops: '🛠 電商經營', market: '📊 市場動態', external: '🌏 外站趨勢' };
 
 const FEEDBACK_HEADERS = ['時間', '回饋者', '期別', '條目ID', '分類', '標題', '評價', '原因'];
 const SAVE_HEADERS = ['時間', 'Email', '條目ID', '期別', '標題', '狀態'];
@@ -46,13 +48,123 @@ function doGet() {
 }
 
 /**
- * 首次部署（或程式新增了對外請求）後，在編輯器選這個函式按「執行」一次，
- * 依提示完成授權。授權後網頁應用程式才能驗證 Google 登入憑證。
+ * 首次部署（或程式新增了權限需求）後，在編輯器選這個函式按「執行」一次，
+ * 依提示完成授權。授權後網頁應用程式才能驗證登入憑證、寄送電子報。
  */
 function authorize() {
   UrlFetchApp.fetch('https://oauth2.googleapis.com/tokeninfo?id_token=x', { muteHttpExceptions: true });
   SpreadsheetApp.openById(SHEET_ID).getName();
+  Logger.log('今日剩餘寄信額度：' + MailApp.getRemainingDailyQuota());
   Logger.log('授權完成');
+}
+
+// ---- 電子報 ----
+
+/** 在試算表選單加入寄送入口，開啟試算表時自動執行。 */
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('電商情報站')
+    .addItem('寄送最新一期電子報', 'sendLatestIssue')
+    .addItem('預覽最新一期（只寄給我自己）', 'previewLatestIssue')
+    .addItem('重寄最新一期（忽略已寄紀錄）', 'resendLatestIssue')
+    .addToUi();
+}
+
+function sendLatestIssue() { sendIssue_(null, false, false); }
+function resendLatestIssue() { sendIssue_(null, true, false); }
+function previewLatestIssue() { sendIssue_(null, true, true); }
+
+/**
+ * @param {?string} date    指定期別；null 表示最新一期
+ * @param {boolean} force   忽略「已寄過」紀錄
+ * @param {boolean} preview 只寄給執行者本人，不動用訂閱名單、不記錄已寄
+ */
+function sendIssue_(date, force, preview) {
+  const index = fetchJson_(SITE_URL + 'data/index.json');
+  const target = date || index.issues[0].date;
+  const props = PropertiesService.getScriptProperties();
+  const sentKey = 'sent_' + target;
+
+  if (!force && props.getProperty(sentKey)) {
+    notify_('第 ' + target + ' 期已於 ' + props.getProperty(sentKey) + ' 寄送過。若要重寄請選「重寄最新一期」。');
+    return;
+  }
+
+  const issue = fetchJson_(SITE_URL + 'data/' + target + '.json');
+  const recipients = preview ? [Session.getActiveUser().getEmail()] : currentSubscribers();
+  if (!recipients.length) {
+    notify_('目前沒有訂閱者，未寄送。');
+    return;
+  }
+
+  const subject = '電商情報站 第 ' + issue.issue + ' 期（' + issue.date + '）';
+  const html = buildNewsletter_(issue);
+  recipients.forEach(function (email) {
+    MailApp.sendEmail({ to: email, subject: (preview ? '[預覽] ' : '') + subject, htmlBody: html, name: '電商情報站' });
+  });
+
+  if (!preview) props.setProperty(sentKey, new Date().toISOString());
+  notify_('已寄出第 ' + issue.issue + ' 期給 ' + recipients.length + ' 位收件者。');
+}
+
+function buildNewsletter_(issue) {
+  const published = issue.items.filter(function (i) { return i.published; });
+  let html =
+    '<div style="font-family:-apple-system,\'PingFang TC\',\'Microsoft JhengHei\',sans-serif;' +
+    'max-width:640px;margin:0 auto;color:#2e2e2e;line-height:1.75;">' +
+    '<h1 style="font-size:20px;font-weight:600;letter-spacing:-0.02em;margin:0 0 4px;">電商情報站　第 ' +
+    issue.issue + ' 期</h1>' +
+    '<p style="font-size:13px;color:rgba(0,0,0,.56);margin:0 0 28px;">' + issue.date +
+    '　共 ' + published.length + ' 則</p>';
+
+  ['ops', 'market', 'external'].forEach(function (tab) {
+    const items = published.filter(function (i) { return i.tab === tab; });
+    if (!items.length) return;
+    html += '<h2 style="font-size:15px;font-weight:600;margin:32px 0 12px;">' + TAB_NAMES[tab] + '</h2>';
+    items.forEach(function (item) {
+      const score = item.score.breadth + item.score.action + item.score.timeliness;
+      const tags = (item.tab === 'market' ? item.industries : []).concat(item.flags);
+      html +=
+        '<div style="background:#fff;border-radius:10px;padding:18px 20px;margin-bottom:14px;' +
+        'box-shadow:0 1px 3px rgba(0,0,0,.06);">' +
+        '<div style="font-size:12px;color:rgba(0,0,0,.56);margin-bottom:6px;">評分 ' + score +
+        (tags.length ? '　·　' + tags.join('　·　') : '') + '</div>' +
+        '<div style="font-size:15px;font-weight:600;line-height:1.5;margin-bottom:8px;">' + item.title + '</div>' +
+        '<div style="font-size:13.5px;color:rgba(0,0,0,.72);margin-bottom:10px;">' + item.summary + '</div>' +
+        '<div style="font-size:13.5px;color:rgba(0,0,0,.72);background:#fafaf9;border-left:2px solid #207dff;' +
+        'padding:10px 14px;margin-bottom:10px;"><strong style="color:#207dff;">對商家的意義</strong>　' +
+        item.why_it_matters + '</div>' +
+        '<div style="font-size:12px;color:rgba(0,0,0,.56);">來源：' +
+        item.sources.map(function (s) {
+          return '<a href="' + s.url + '" style="color:rgba(0,0,0,.56);">' + s.name + '</a>';
+        }).join('・') + '</div></div>';
+    });
+  });
+
+  if (issue.editor_note) {
+    html +=
+      '<div style="font-size:12.5px;color:rgba(0,0,0,.56);border-top:1px solid rgba(0,0,0,.07);' +
+      'margin-top:28px;padding-top:16px;"><strong>本期編輯後記</strong><br>' + issue.editor_note + '</div>';
+  }
+
+  html +=
+    '<p style="font-size:12px;color:rgba(0,0,0,.38);margin-top:28px;text-align:center;">' +
+    '<a href="' + SITE_URL + '" style="color:#207dff;">在網站上瀏覽（可收藏與回饋）</a><br>' +
+    '不想再收到？到網站登入後點「已訂閱電子報」即可取消。</p></div>';
+  return html;
+}
+
+function fetchJson_(url) {
+  return JSON.parse(UrlFetchApp.fetch(url, { muteHttpExceptions: false }).getContentText());
+}
+
+/** 從選單執行時跳提示；從編輯器執行時寫入 Log。 */
+function notify_(msg) {
+  try {
+    SpreadsheetApp.getUi().alert(msg);
+  } catch (e) {
+    Logger.log(msg);
+  }
 }
 
 // ---- 動作 ----
