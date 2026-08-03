@@ -205,6 +205,8 @@ async function callBackend(payload, attempt = 0) {
 const ICONS = {
   mail: `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M3 7l9 6l9 -6"/></svg>`,
   logout: `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"/><path d="M9 12h12l-3 -3"/><path d="M18 15l3 -3"/></svg>`,
+  check: `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10"/></svg>`,
+  dots: `<svg class="ico-dots" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>`,
   google: `<svg class="ico-g" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.71-1.57 2.68-3.89 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.34A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.94H.96a9 9 0 0 0 0 8.12z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.46 3.44 1.35l2.58-2.58C13.47.9 11.43 0 9 0A9 9 0 0 0 .96 4.94l3.01 2.34C4.68 5.16 6.66 3.58 9 3.58z"/></svg>`,
 };
 
@@ -264,25 +266,44 @@ function renderAuth() {
     const avatar = state.auth.picture
       ? `<img class="acct-avatar" src="${state.auth.picture}" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'acct-avatar acct-avatar-fallback',textContent:'${initial}'}))">`
       : `<span class="acct-avatar acct-avatar-fallback">${initial}</span>`;
+    const subItem = state.subscribed
+      ? `${ICONS.check}已訂閱電子報`
+      : `${ICONS.mail}訂閱電子報`;
     box.innerHTML = `
-      <div class="acct-card">
-        <div class="acct-head">
+      <div class="acct">
+        <button class="acct-chip" id="acct-chip" aria-haspopup="true" aria-expanded="false">
           ${avatar}
           <div class="acct-id">
             <div class="acct-name">${name}</div>
             <div class="acct-email" title="${state.auth.email}">${state.auth.email}</div>
           </div>
-        </div>
-        <div class="acct-actions">
-          <button class="acct-row" id="sub-btn">
-            <span class="acct-row-label">${ICONS.mail}訂閱電子報</span>
-            <span class="acct-switch ${state.subscribed ? "on" : ""}" id="sub-switch"><span class="acct-knob"></span></span>
-          </button>
-          <button class="acct-row" id="signout-btn">
-            <span class="acct-row-label">${ICONS.logout}登出</span>
-          </button>
+          ${ICONS.dots}
+        </button>
+        <div class="acct-menu" id="acct-menu" hidden>
+          <button class="acct-mitem" id="sub-btn">${subItem}</button>
+          <button class="acct-mitem" id="signout-btn">${ICONS.logout}登出</button>
         </div>
       </div>`;
+    const chip = $("#acct-chip");
+    const menu = $("#acct-menu");
+    const closeMenu = () => {
+      menu.hidden = true;
+      chip.setAttribute("aria-expanded", "false");
+      document.removeEventListener("click", onOutside);
+    };
+    const onOutside = (e) => {
+      if (!e.target.closest("#auth")) closeMenu();
+    };
+    chip.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (menu.hidden) {
+        menu.hidden = false;
+        chip.setAttribute("aria-expanded", "true");
+        setTimeout(() => document.addEventListener("click", onOutside), 0);
+      } else {
+        closeMenu();
+      }
+    });
     $("#sub-btn").addEventListener("click", toggleSubscribe);
     $("#signout-btn").addEventListener("click", () => {
       state.auth = null;
@@ -328,12 +349,12 @@ async function syncFromServer() {
   }
 }
 
-async function toggleSubscribe() {
+async function toggleSubscribe(e) {
+  if (e) e.stopPropagation();
   const btn = $("#sub-btn");
-  const sw = $("#sub-switch");
   const next = !state.subscribed;
   btn.disabled = true;
-  sw.classList.add("busy");
+  btn.innerHTML = "處理中…";
   try {
     await callBackend({
       action: next ? "subscribe" : "unsubscribe",
@@ -344,6 +365,8 @@ async function toggleSubscribe() {
     alert("設定失敗：" + err.message);
   }
   renderAuth();
+  // 重繪後沿用 chip 既有的開合邏輯把選單重新展開，讓使用者看到切換結果
+  $("#acct-chip")?.click();
 }
 
 // ---- 收藏 ----

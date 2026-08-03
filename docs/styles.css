@@ -174,17 +174,24 @@ body {
 }
 .auth[hidden] { display: none; }
 
-/* 帳號卡片（已登入） */
-.acct-card {
-  background: var(--surface);
-  border-radius: 12px;
-  box-shadow: var(--shadow-card);
-  padding: 10px 12px;
+/* 帳號列（已登入，B：精簡列＋選單） */
+.acct { position: relative; }
+.acct-chip {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border: none;
+  background: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font: inherit;
 }
-.acct-head { display: flex; align-items: center; gap: 10px; }
+.acct-chip:hover { background: rgba(0, 0, 0, 0.04); }
 .acct-avatar {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   flex: none;
   object-fit: cover;
@@ -195,55 +202,43 @@ body {
   justify-content: center;
   background: var(--accent);
   color: #fff;
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   font-weight: 600;
 }
-.acct-id { min-width: 0; }
+.acct-id { min-width: 0; flex: 1; text-align: left; }
 .acct-name { font-size: 0.82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .acct-email { font-size: 0.7rem; color: var(--text-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ico-dots { width: 16px; height: 16px; flex: none; color: var(--text-soft); }
 
-.acct-actions { border-top: 1px solid var(--hairline); margin: 9px -12px 0; padding: 3px 8px 0; }
-.acct-row {
+.acct-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 6px);
+  background: var(--surface);
+  border-radius: 10px;
+  box-shadow: var(--shadow-float);
+  padding: 4px;
+  z-index: 20;
+}
+.acct-menu[hidden] { display: none; }
+.acct-mitem {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
-  padding: 6px 4px;
+  padding: 8px 10px;
   border: none;
   background: none;
-  border-radius: 6px;
+  border-radius: 7px;
   cursor: pointer;
   font: inherit;
   font-size: 0.8rem;
   color: var(--text-soft);
+  text-align: left;
 }
-.acct-row:hover { background: rgba(0, 0, 0, 0.03); color: var(--text); }
-.acct-row-label { display: flex; align-items: center; gap: 8px; }
+.acct-mitem:hover { background: rgba(0, 0, 0, 0.04); color: var(--text); }
 .ico { width: 15px; height: 15px; flex: none; opacity: 0.7; }
-
-.acct-switch {
-  width: 30px;
-  height: 17px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.18);
-  position: relative;
-  flex: none;
-  transition: background 0.15s;
-}
-.acct-switch.on { background: var(--accent); }
-.acct-switch.busy { opacity: 0.5; }
-.acct-knob {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: #fff;
-  transition: transform 0.15s;
-}
-.acct-switch.on .acct-knob { transform: translateX(13px); }
 
 /* 未登入 */
 .signin-prompt { font-size: 0.76rem; color: var(--text-soft); line-height: 1.5; margin-bottom: 10px; }
