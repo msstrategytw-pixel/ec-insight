@@ -201,6 +201,13 @@ async function callBackend(payload, attempt = 0) {
 
 // ---- 登入 ----
 
+// 內嵌線性圖示（Tabler，stroke 24×24），維持零外部依賴
+const ICONS = {
+  mail: `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"/><path d="M3 7l9 6l9 -6"/></svg>`,
+  logout: `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"/><path d="M9 12h12l-3 -3"/><path d="M18 15l3 -3"/></svg>`,
+  google: `<svg class="ico-g" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.71-1.57 2.68-3.89 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.34A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.94H.96a9 9 0 0 0 0 8.12z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.46 3.44 1.35l2.58-2.58C13.47.9 11.43 0 9 0A9 9 0 0 0 .96 4.94l3.01 2.34C4.68 5.16 6.66 3.58 9 3.58z"/></svg>`,
+};
+
 function decodeJwt(token) {
   const p = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
   return JSON.parse(decodeURIComponent(escape(atob(p))));
@@ -268,11 +275,11 @@ function renderAuth() {
         </div>
         <div class="acct-actions">
           <button class="acct-row" id="sub-btn">
-            <span class="acct-row-label"><i class="acct-ico">✉</i>訂閱電子報</span>
+            <span class="acct-row-label">${ICONS.mail}訂閱電子報</span>
             <span class="acct-switch ${state.subscribed ? "on" : ""}" id="sub-switch"><span class="acct-knob"></span></span>
           </button>
           <button class="acct-row" id="signout-btn">
-            <span class="acct-row-label"><i class="acct-ico">⏻</i>登出</span>
+            <span class="acct-row-label">${ICONS.logout}登出</span>
           </button>
         </div>
       </div>`;
@@ -287,15 +294,20 @@ function renderAuth() {
       render();
     });
   } else {
+    // 自訂按鈕維持整站風格；真正的 Google 按鈕透明疊在上層負責觸發登入
     box.innerHTML = `
       <p class="signin-prompt">登入以收藏條目、給予回饋</p>
-      <div id="gsi-btn"></div>`;
+      <div class="signin-wrap">
+        <button class="signin-btn" type="button">${ICONS.google}使用 Google 登入</button>
+        <div id="gsi-btn" class="gsi-overlay" aria-hidden="true"></div>
+      </div>`;
     if (window.google?.accounts?.id) {
       google.accounts.id.renderButton($("#gsi-btn"), {
         type: "standard",
         theme: "outline",
-        size: "medium",
+        size: "large",
         text: "signin",
+        width: 220,
         locale: "zh_TW",
       });
     }

@@ -202,14 +202,14 @@ body {
 .acct-name { font-size: 0.82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .acct-email { font-size: 0.7rem; color: var(--text-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.acct-actions { border-top: 1px solid var(--hairline); margin: 10px -12px 0; padding: 4px 8px 0; }
+.acct-actions { border-top: 1px solid var(--hairline); margin: 9px -12px 0; padding: 3px 8px 0; }
 .acct-row {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 7px 4px;
+  padding: 6px 4px;
   border: none;
   background: none;
   border-radius: 6px;
@@ -219,8 +219,8 @@ body {
   color: var(--text-soft);
 }
 .acct-row:hover { background: rgba(0, 0, 0, 0.03); color: var(--text); }
-.acct-row-label { display: flex; align-items: center; gap: 7px; }
-.acct-ico { font-style: normal; font-size: 0.9rem; width: 15px; text-align: center; opacity: 0.75; }
+.acct-row-label { display: flex; align-items: center; gap: 8px; }
+.ico { width: 15px; height: 15px; flex: none; opacity: 0.7; }
 
 .acct-switch {
   width: 30px;
@@ -246,7 +246,28 @@ body {
 .acct-switch.on .acct-knob { transform: translateX(13px); }
 
 /* 未登入 */
-.signin-prompt { font-size: 0.76rem; color: var(--text-soft); line-height: 1.5; margin-bottom: 9px; }
+.signin-prompt { font-size: 0.76rem; color: var(--text-soft); line-height: 1.5; margin-bottom: 10px; }
+
+.signin-wrap { position: relative; display: inline-block; }
+.signin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--text);
+  background: var(--surface);
+  border: none;
+  box-shadow: var(--shadow-card);
+  border-radius: 10px;
+  padding: 9px 16px;
+  cursor: pointer;
+}
+.signin-btn:hover { background: #fafafa; }
+.ico-g { width: 16px; height: 16px; flex: none; }
+/* 真正的 Google 按鈕透明疊在自訂按鈕上，負責觸發登入（需真實點擊） */
+.gsi-overlay { position: absolute; inset: 0; opacity: 0; overflow: hidden; cursor: pointer; }
+.gsi-overlay > div { min-width: 100%; min-height: 100%; }
 
 /* ---- 內容區 ---- */
 
