@@ -53,32 +53,36 @@ body {
   flex: none;
   position: sticky;
   top: 0;
-  height: 100vh;
-  padding: 28px 0 24px;
+  max-height: 100vh;
+  padding: 22px 0 18px;
   display: flex;
   flex-direction: column;
+  /* 內容超過視窗高度時自行捲動，底部的登入資訊才不會被切掉 */
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
-.brand { padding: 0 12px; margin-bottom: 26px; }
-.brand h1 { font-size: 1.22rem; font-weight: 600; letter-spacing: -0.02em; }
-.tagline { font-size: 0.78rem; color: var(--text-soft); line-height: 1.5; }
+.brand { padding: 0 12px; margin-bottom: 16px; }
+.brand h1 { font-size: 1.18rem; font-weight: 600; letter-spacing: -0.02em; line-height: 1.4; }
+.tagline { font-size: 0.76rem; color: var(--text-soft); line-height: 1.4; }
 
-.nav { display: flex; flex-direction: column; gap: 2px; }
+.nav { display: flex; flex-direction: column; gap: 1px; }
 
 .nav-item {
   font: inherit;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   display: flex;
   align-items: center;
   gap: 8px;
   width: 100%;
   text-align: left;
-  padding: 9px 12px;
+  padding: 7px 12px;
   border: none;
   border-radius: 8px;
   background: none;
   color: var(--text-soft);
   cursor: pointer;
+  line-height: 1.5;
 }
 .nav-item:hover { background: rgba(0, 0, 0, 0.04); color: var(--text); }
 .nav-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
@@ -94,41 +98,44 @@ body {
   color: inherit;
 }
 
-.nav-sep { height: 1px; background: var(--hairline); margin: 10px 12px; }
+.nav-sep { height: 1px; background: var(--hairline); margin: 8px 12px; }
 
 /* 總覽區 */
 .side-label {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   color: rgba(0, 0, 0, 0.35);
   padding: 0 12px;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
+  line-height: 1.6;
 }
-.side-section { display: flex; flex-direction: column; gap: 2px; }
+.side-section { display: flex; flex-direction: column; gap: 1px; }
 .stat-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.92rem;
-  padding: 9px 12px;
+  font-size: 0.9rem;
+  padding: 7px 12px;
   color: var(--text-soft);
   cursor: default;
+  line-height: 1.5;
 }
 
 /* 市場動態底下的產業勾選 */
-.ind-checks { display: flex; flex-direction: column; margin: 2px 0 6px; }
+.ind-checks { display: flex; flex-direction: column; margin: 1px 0 4px; }
 .ind-checks[hidden] { display: none; }
 .ind-check {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.84rem;
-  padding: 5px 12px 5px 24px;
+  font-size: 0.82rem;
+  padding: 3px 12px 3px 24px;
   color: var(--text-soft);
   cursor: pointer;
   border-radius: 8px;
   user-select: none;
+  line-height: 1.6;
 }
 .ind-check:hover { background: rgba(0, 0, 0, 0.03); }
 .ind-check.checked { color: var(--text); }
@@ -155,8 +162,8 @@ body {
   white-space: nowrap;
 }
 
-.sidebar-foot { margin-top: auto; padding: 0 12px; }
-.auth { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.sidebar-foot { margin-top: auto; padding: 16px 12px 0; }
+.auth { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
 .auth[hidden] { display: none; }
 .auth-user { font-size: 0.82rem; font-weight: 600; }
 
@@ -397,7 +404,8 @@ body {
   .sidebar {
     width: auto;
     position: static;
-    height: auto;
+    max-height: none;
+    overflow-y: visible;
     padding: 20px 0 8px;
   }
   .brand { padding: 0; margin-bottom: 16px; }

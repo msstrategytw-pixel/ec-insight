@@ -88,7 +88,7 @@ function renderIndustryChecks() {
     el.innerHTML = "";
     return;
   }
-  // 各產業本期刊登則數；未啟用產業不顯示
+  // 各產業本期刊登則數
   const marketItems = state.data.items.filter((i) => i.tab === "market" && i.published);
   const counts = {};
   marketItems.forEach((i) => i.industries.forEach((n) => (counts[n] = (counts[n] || 0) + 1)));
@@ -96,7 +96,10 @@ function renderIndustryChecks() {
     `<label class="ind-check ${state.indSel.size === 0 ? "checked" : ""}">
        <input type="checkbox" data-ind="" ${state.indSel.size === 0 ? "checked" : ""}>全部
        <span class="cnt">${marketItems.length}</span></label>`,
-    ...state.industries.map((ind) =>
+    // 已啟用的排前面，待開發的沉到最後
+    ...[...state.industries]
+      .sort((a, b) => Number(b.active) - Number(a.active))
+      .map((ind) =>
       ind.active
         ? `<label class="ind-check ${state.indSel.has(ind.name) ? "checked" : ""}">
              <input type="checkbox" data-ind="${ind.name}" ${state.indSel.has(ind.name) ? "checked" : ""}>${ind.name}
