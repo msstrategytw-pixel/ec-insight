@@ -1,114 +1,200 @@
 {
-  "date": "2026-08-02",
-  "issue": 1,
-  "policy_version": "v0.1",
-  "editor_note": "本期為原型示範，僅執行約 10 組搜尋；正式營運將依方針文件的完整來源清單每日執行。技術驗證發現：蝦皮相關第三方網站已出現 403 擋爬（本期實測），支持「蝦皮採官方報告降級方案」的判斷。待改進：外站榜單歷史追蹤未上線；經濟部 6 月零售統計已於 7 月下旬發布但本期未及收錄。",
-  "items": [
+ "date": "2026-08-02",
+ "issue": 1,
+ "policy_version": "v0.1",
+ "editor_note": "本期為原型示範，僅執行約 10 組搜尋；正式營運將依方針文件的完整來源清單每日執行。技術驗證發現：蝦皮相關第三方網站已出現 403 擋爬（本期實測），支持「蝦皮採官方報告降級方案」的判斷。待改進：外站榜單歷史追蹤未上線；經濟部 6 月零售統計已於 7 月下旬發布但本期未及收錄。",
+ "items": [
+  {
+   "id": "google-ai-max-auto-upgrade",
+   "tab": "ops",
+   "industries": [],
+   "title": "Google 廣告 9 月起自動升級「AI Max」，廣告主應提前檢視帳戶設定",
+   "summary": "Google 於 2026 年 6 月 Google Marketing Live 發表多項生成式 AI 廣告功能，其中搜尋廣告將於 2026 年 9 月起自動升級至 AI Max；Demand Gen 廣告同步新增影片素材自動調整尺寸、Gemini 素材優化建議、web-to-app 轉換追蹤等功能。",
+   "why_it_matters": "自動升級代表不主動處理就會被套用新機制，投放邏輯與關鍵字比對方式可能改變。建議顧問提醒有投 Google 廣告的商家，9 月前檢視帳戶設定與升級影響，避免預算失控。",
+   "score": {
+    "breadth": 5,
+    "action": 4,
+    "timeliness": 4
+   },
+   "published": true,
+   "flags": [
+    "外電彙整，建議以 Google 官方公告二次確認"
+   ],
+   "sources": [
     {
-      "id": "google-ai-max-auto-upgrade",
-      "tab": "ops",
-      "industries": [],
-      "title": "Google 廣告 9 月起自動升級「AI Max」，廣告主應提前檢視帳戶設定",
-      "summary": "Google 於 2026 年 6 月 Google Marketing Live 發表多項生成式 AI 廣告功能，其中搜尋廣告將於 2026 年 9 月起自動升級至 AI Max；Demand Gen 廣告同步新增影片素材自動調整尺寸、Gemini 素材優化建議、web-to-app 轉換追蹤等功能。",
-      "why_it_matters": "自動升級代表不主動處理就會被套用新機制，投放邏輯與關鍵字比對方式可能改變。建議顧問提醒有投 Google 廣告的商家，9 月前檢視帳戶設定與升級影響，避免預算失控。",
-      "score": { "breadth": 5, "action": 4, "timeliness": 4 },
-      "published": true,
-      "flags": ["外電彙整，建議以 Google 官方公告二次確認"],
-      "sources": [
-        { "name": "DMCJ 2026年7月廣告更新彙整", "url": "https://dmcj.jp/list/update/202607news/" },
-        { "name": "Marketing One 媒體別更新", "url": "https://marketingone.co.jp/d2c-ad-media-updates-2026-07/" }
-      ]
+     "name": "DMCJ 2026年7月廣告更新彙整",
+     "url": "https://dmcj.jp/list/update/202607news/"
     },
     {
-      "id": "eu-de-minimis-removal",
-      "tab": "ops",
-      "industries": [],
-      "title": "歐盟 7/1 起取消 150 歐元以下小包裹免稅，跨境賣家成本結構改變",
-      "summary": "自 2026 年 7 月 1 日起，歐盟取消對價值低於 150 歐元小額包裹的關稅豁免，改徵每件 3 歐元的臨時固定關稅；美國 CPSC 亦自 7 月 8 日起強制實施電子申報（eFiling），受管轄產品須在海關申報環節同步提交合規資料。",
-      "why_it_matters": "有做歐美跨境的商家（尤其低單價直運模式）成本與合規負擔上升，需重算定價或改走海外倉。本則目前僅中國媒體來源，正式引用前應以歐盟官方公告查證。",
-      "score": { "breadth": 3, "action": 4, "timeliness": 5 },
-      "published": true,
-      "flags": ["單一來源待查證"],
-      "sources": [
-        { "name": "搜狐：7月跨境新規", "url": "https://www.sohu.com/a/1045392719_121810763" }
-      ]
-    },
-    {
-      "id": "shopee-fee-2026-ongoing",
-      "tab": "ops",
-      "industries": [],
-      "title": "持續追蹤：蝦皮 2026 費率新制效應仍在發酵，賣家分流討論升溫",
-      "summary": "蝦皮 2026 年起實施「免運及進階賣家專案」（專案服務費由 7% 調降為 6%，另提供高價商品每單固定 60 元之選項，未報名者已自動納入），但各項費用疊加後的整體負擔仍是社群熱議焦點，多家開店服務商發文承接「蝦皮賣家出走」需求，出現「賣越多虧越多」的爭議聲量。",
-      "why_it_matters": "對雙棲（蝦皮＋官網）商家，這是引導流量回官網、經營自有會員的談話切點；留在蝦皮的商家則需重算各品類毛利。",
-      "score": { "breadth": 4, "action": 3, "timeliness": 2 },
-      "published": true,
-      "flags": ["持續追蹤"],
-      "sources": [
-        { "name": "EasyStore 費率解析", "url": "https://blog.easystore.co/zh-tw/blog-2026-shopee-selling-fee-influence-seller" },
-        { "name": "4Gamers 報導", "url": "https://www.4gamers.com.tw/saged/detail/qex04n1664g99r" },
-        { "name": "CYBERBIZ 因應對策", "url": "https://www.cyberbiz.io/blog/%E8%9D%A6%E7%9A%AE%E6%89%8B%E7%BA%8C%E8%B2%BB/" }
-      ]
-    },
-    {
-      "id": "cosmetics-pif-phase3",
-      "tab": "market",
-      "industries": ["美妝保養＆個人護理"],
-      "title": "化粧品 PIF 第三階段 7/1 全面上路，一般化粧品未建檔最高罰百萬",
-      "summary": "2026 年 7 月 1 日起，化粧品「產品資訊檔案（PIF）」制度進入最終階段：所有一般化粧品（保濕、洗面乳、面膜等均含）於供應販賣前皆須完成登錄並建置 PIF，未落實最高可處新臺幣 100 萬元罰鍰、得按次處罰（各來源引述罰額略有出入，建議以食藥署公告為準）。自有品牌、代工分裝、進口銷售業者皆為規範對象。",
-      "why_it_matters": "美妝類商家的合規大限已到，顧問應立即盤點名下美妝商家是否完成建檔；未合規商品有停售下架風險，直接影響營收。",
-      "score": { "breadth": 3, "action": 5, "timeliness": 5 },
-      "published": true,
-      "flags": [],
-      "sources": [
-        { "name": "Vocus 解析", "url": "https://vocus.cc/article/6951eb1cfd89780001b2aa5e" },
-        { "name": "台美檢驗 PIF 說明", "url": "https://www.superlab.com.tw/pif_01/" },
-        { "name": "EasyBeauty 合規指南", "url": "https://easybeautyone.com/blog/cosmetics-pif-compliance-2026" }
-      ]
-    },
-    {
-      "id": "momo-pchome-june-revenue",
-      "tab": "market",
-      "industries": [],
-      "title": "618 帶動 6 月電商雙雄營收齊揚：momo 98.2 億、網家年增 15.5%",
-      "summary": "momo 富邦媒 6 月合併營收 98.2 億元（月增 9.3%、年增 6.5%），創 7 個月新高，上半年累計 536.9 億元（年增 2.4%）；網家 6 月營收 34.15 億元（年增 15.49%），創近 4 年同期新高，上半年 189.53 億元（年增 9.24%）。動能來自 618 檔期 3C 買氣與夏季家電、暑假出遊需求（除濕機、清淨機、運動服飾、行李箱）。",
-      "why_it_matters": "大盤仍在成長且 618 檔期有效，顧問可用此數據支持商家投入年中檔；季節品類（家電、旅遊相關）的需求時點可作為備貨參考。",
-      "score": { "breadth": 4, "action": 3, "timeliness": 3 },
-      "published": true,
-      "flags": [],
-      "sources": [
-        { "name": "中央社", "url": "https://www.cna.com.tw/news/afe/202607130300.aspx" },
-        { "name": "經濟日報", "url": "https://money.udn.com/money/story/5607/9625291" },
-        { "name": "知新聞", "url": "https://www.knews.com.tw/news/3E2C59EAFBF5302107FF8A0F79244AC7" }
-      ]
-    },
-    {
-      "id": "coupang-tw-marketplace",
-      "tab": "external",
-      "industries": [],
-      "title": "酷澎台灣：三位數成長＋75% 次日達，商城生態逐步成形",
-      "summary": "酷澎財報揭露 2025 年台灣業務三位數成長，去年 12 月已有 75% 訂單可次日達、末端物流覆蓋約七成；商城（第三方賣家平台）自 2025 年招商上線，早期以低費率（試營運零成交手續費）吸引賣家，執行長並證實持續擴充商品數與自建物流。另一方面，業內亦有聲音指出其成長相對投資規模（一年逾百億台幣）仍待觀察。",
-      "why_it_matters": "酷澎商城處於「補貼搶賣家」階段，費率條件優於蝦皮，對受蝦皮費率新制影響的商家是值得評估的第二戰場；但平台客群與品類結構（快消品為主）需與商家品類匹配。",
-      "score": { "breadth": 4, "action": 3, "timeliness": 2 },
-      "published": true,
-      "flags": ["背景脈絡"],
-      "sources": [
-        { "name": "聯合新聞網：酷澎財報", "url": "https://udn.com/news/story/6811/9348277" },
-        { "name": "數位時代：酷澎商城布局（2025/2 舊文）", "url": "https://www.bnext.com.tw/article/82441/coupang-marketplace" }
-      ]
-    },
-    {
-      "id": "shopee-77-no-report",
-      "tab": "external",
-      "industries": [],
-      "title": "蝦皮 7.7 檔期觀察：官方未發戰報，例行檔期化明顯",
-      "summary": "本期嘗試蒐集蝦皮 7.7 購物節銷售戰報，官方未發布銷售數據，僅有信用卡回饋等例行促銷資訊。",
-      "why_it_matters": "此則總分未達刊登門檻，正式營運時將直接過濾，此處保留作為評分示範。",
-      "score": { "breadth": 2, "action": 2, "timeliness": 3 },
-      "published": false,
-      "flags": ["未達門檻示範"],
-      "sources": [
-        { "name": "蝦皮 7.7 活動頁", "url": "https://shopee.tw/m/7-7" }
-      ]
+     "name": "Marketing One 媒體別更新",
+     "url": "https://marketingone.co.jp/d2c-ad-media-updates-2026-07/"
     }
-  ]
+   ]
+  },
+  {
+   "id": "eu-de-minimis-removal",
+   "tab": "ops",
+   "industries": [],
+   "title": "歐盟 7/1 起取消 150 歐元以下小包裹免稅，跨境賣家成本結構改變",
+   "summary": "自 2026 年 7 月 1 日起，歐盟取消對價值低於 150 歐元小額包裹的關稅豁免，改徵每件 3 歐元的臨時固定關稅；美國 CPSC 亦自 7 月 8 日起強制實施電子申報（eFiling），受管轄產品須在海關申報環節同步提交合規資料。",
+   "why_it_matters": "有做歐美跨境的商家（尤其低單價直運模式）成本與合規負擔上升，需重算定價或改走海外倉。本則目前僅中國媒體來源，正式引用前應以歐盟官方公告查證。",
+   "score": {
+    "breadth": 3,
+    "action": 4,
+    "timeliness": 5
+   },
+   "published": true,
+   "flags": [
+    "單一來源待查證"
+   ],
+   "sources": [
+    {
+     "name": "搜狐：7月跨境新規",
+     "url": "https://www.sohu.com/a/1045392719_121810763"
+    }
+   ]
+  },
+  {
+   "id": "shopee-fee-2026-ongoing",
+   "tab": "ops",
+   "industries": [],
+   "title": "持續追蹤：蝦皮 2026 費率新制效應仍在發酵，賣家分流討論升溫",
+   "summary": "蝦皮 2026 年起實施「免運及進階賣家專案」（專案服務費由 7% 調降為 6%，另提供高價商品每單固定 60 元之選項，未報名者已自動納入），但各項費用疊加後的整體負擔仍是社群熱議焦點，多家開店服務商發文承接「蝦皮賣家出走」需求，出現「賣越多虧越多」的爭議聲量。",
+   "why_it_matters": "對雙棲（蝦皮＋官網）商家，這是引導流量回官網、經營自有會員的談話切點；留在蝦皮的商家則需重算各品類毛利。",
+   "score": {
+    "breadth": 4,
+    "action": 3,
+    "timeliness": 2
+   },
+   "published": true,
+   "flags": [
+    "持續追蹤"
+   ],
+   "sources": [
+    {
+     "name": "EasyStore 費率解析",
+     "url": "https://blog.easystore.co/zh-tw/blog-2026-shopee-selling-fee-influence-seller"
+    },
+    {
+     "name": "4Gamers 報導",
+     "url": "https://www.4gamers.com.tw/saged/detail/qex04n1664g99r"
+    },
+    {
+     "name": "CYBERBIZ 因應對策",
+     "url": "https://www.cyberbiz.io/blog/%E8%9D%A6%E7%9A%AE%E6%89%8B%E7%BA%8C%E8%B2%BB/"
+    }
+   ]
+  },
+  {
+   "id": "cosmetics-pif-phase3",
+   "tab": "market",
+   "industries": [
+    "美妝保養＆個人護理"
+   ],
+   "title": "化粧品 PIF 第三階段 7/1 全面上路，一般化粧品未建檔最高罰百萬",
+   "summary": "2026 年 7 月 1 日起，化粧品「產品資訊檔案（PIF）」制度進入最終階段：所有一般化粧品（保濕、洗面乳、面膜等均含）於供應販賣前皆須完成登錄並建置 PIF，未落實最高可處新臺幣 100 萬元罰鍰、得按次處罰（各來源引述罰額略有出入，建議以食藥署公告為準）。自有品牌、代工分裝、進口銷售業者皆為規範對象。",
+   "why_it_matters": "美妝類商家的合規大限已到，顧問應立即盤點名下美妝商家是否完成建檔；未合規商品有停售下架風險，直接影響營收。",
+   "score": {
+    "breadth": 3,
+    "action": 5,
+    "timeliness": 5
+   },
+   "published": true,
+   "flags": [],
+   "sources": [
+    {
+     "name": "Vocus 解析",
+     "url": "https://vocus.cc/article/6951eb1cfd89780001b2aa5e"
+    },
+    {
+     "name": "台美檢驗 PIF 說明",
+     "url": "https://www.superlab.com.tw/pif_01/"
+    },
+    {
+     "name": "EasyBeauty 合規指南",
+     "url": "https://easybeautyone.com/blog/cosmetics-pif-compliance-2026"
+    }
+   ]
+  },
+  {
+   "id": "momo-pchome-june-revenue",
+   "tab": "market",
+   "industries": [],
+   "title": "618 帶動 6 月電商雙雄營收齊揚：momo 98.2 億、網家年增 15.5%",
+   "summary": "momo 富邦媒 6 月合併營收 98.2 億元（月增 9.3%、年增 6.5%），創 7 個月新高，上半年累計 536.9 億元（年增 2.4%）；網家 6 月營收 34.15 億元（年增 15.49%），創近 4 年同期新高，上半年 189.53 億元（年增 9.24%）。動能來自 618 檔期 3C 買氣與夏季家電、暑假出遊需求（除濕機、清淨機、運動服飾、行李箱）。",
+   "why_it_matters": "大盤仍在成長且 618 檔期有效，顧問可用此數據支持商家投入年中檔；季節品類（家電、旅遊相關）的需求時點可作為備貨參考。",
+   "score": {
+    "breadth": 4,
+    "action": 3,
+    "timeliness": 3
+   },
+   "published": true,
+   "flags": [],
+   "sources": [
+    {
+     "name": "中央社",
+     "url": "https://www.cna.com.tw/news/afe/202607130300.aspx"
+    },
+    {
+     "name": "經濟日報",
+     "url": "https://money.udn.com/money/story/5607/9625291"
+    },
+    {
+     "name": "知新聞",
+     "url": "https://www.knews.com.tw/news/3E2C59EAFBF5302107FF8A0F79244AC7"
+    }
+   ],
+   "source_date": "2026-07-13"
+  },
+  {
+   "id": "coupang-tw-marketplace",
+   "tab": "external",
+   "industries": [],
+   "title": "酷澎台灣：三位數成長＋75% 次日達，商城生態逐步成形",
+   "summary": "酷澎財報揭露 2025 年台灣業務三位數成長，去年 12 月已有 75% 訂單可次日達、末端物流覆蓋約七成；商城（第三方賣家平台）自 2025 年招商上線，早期以低費率（試營運零成交手續費）吸引賣家，執行長並證實持續擴充商品數與自建物流。另一方面，業內亦有聲音指出其成長相對投資規模（一年逾百億台幣）仍待觀察。",
+   "why_it_matters": "酷澎商城處於「補貼搶賣家」階段，費率條件優於蝦皮，對受蝦皮費率新制影響的商家是值得評估的第二戰場；但平台客群與品類結構（快消品為主）需與商家品類匹配。",
+   "score": {
+    "breadth": 4,
+    "action": 3,
+    "timeliness": 2
+   },
+   "published": true,
+   "flags": [
+    "背景脈絡"
+   ],
+   "sources": [
+    {
+     "name": "聯合新聞網：酷澎財報",
+     "url": "https://udn.com/news/story/6811/9348277"
+    },
+    {
+     "name": "數位時代：酷澎商城布局（2025/2 舊文）",
+     "url": "https://www.bnext.com.tw/article/82441/coupang-marketplace"
+    }
+   ]
+  },
+  {
+   "id": "shopee-77-no-report",
+   "tab": "external",
+   "industries": [],
+   "title": "蝦皮 7.7 檔期觀察：官方未發戰報，例行檔期化明顯",
+   "summary": "本期嘗試蒐集蝦皮 7.7 購物節銷售戰報，官方未發布銷售數據，僅有信用卡回饋等例行促銷資訊。",
+   "why_it_matters": "此則總分未達刊登門檻，正式營運時將直接過濾，此處保留作為評分示範。",
+   "score": {
+    "breadth": 2,
+    "action": 2,
+    "timeliness": 3
+   },
+   "published": false,
+   "flags": [
+    "未達門檻示範"
+   ],
+   "sources": [
+    {
+     "name": "蝦皮 7.7 活動頁",
+     "url": "https://shopee.tw/m/7-7"
+    }
+   ]
+  }
+ ]
 }

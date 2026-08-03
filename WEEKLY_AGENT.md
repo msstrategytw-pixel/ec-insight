@@ -38,7 +38,7 @@
 
 1. `docs/data/YYYY-MM-DD.json`（今天日期）——結構完全比照現有檔案（參考 `docs/data/2026-08-02.json`）：
    - 頂層：`date`、`issue`（上期 +1）、`policy_version`、`editor_note`、`items[]`
-   - item：`id`（英文 kebab-case）、`tab`（`ops`|`market`|`external`）、`industries[]`、`title`、`summary`、`why_it_matters`、`score{breadth,action,timeliness}`、`published`（未達門檻但有示範價值者可設 false 收錄，至多 2 則）、`flags[]`、`sources[{name,url}]`
+   - item：`id`（英文 kebab-case）、`tab`（`ops`|`market`|`external`）、`industries[]`、`title`、`summary`、`why_it_matters`、`score{breadth,action,timeliness}`、`published`（未達門檻但有示範價值者可設 false 收錄，至多 2 則）、`flags[]`、`sources[{name,url}]`、`source_date`（選填，主要來源的發布日期 YYYY-MM-DD；**只能填實際從原文確認到的日期，查不到就整個欄位省略，不得推估**）
 2. 在 `docs/data/index.json` 的 `issues` 陣列**開頭**插入 `{ "date": "...", "issue": N }`。
 3. `簡報/YYYY-MM-DD.md`——人讀版，格式比照 `簡報/2026-08-02.md`。
 4. `editor_note` 誠實揭露：本期查詢範圍、同步／抓取失敗、已知缺漏。

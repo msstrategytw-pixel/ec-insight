@@ -15,12 +15,19 @@
         <p class="tagline">顧問團隊每週情報彙整</p>
       </div>
 
+      <div class="side-label">總覽</div>
+      <div class="side-section">
+        <div class="stat-row">總文章數 <span class="nav-count" id="stat-total">–</span></div>
+        <button class="nav-item" id="saved-btn">我的收藏 <span id="saved-count" class="nav-count">0</span></button>
+      </div>
+
+      <div class="nav-sep"></div>
+
       <nav class="nav">
         <button class="nav-item active" data-tab="ops">電商經營</button>
         <button class="nav-item" data-tab="market">市場動態</button>
+        <div id="industry-nav" class="ind-checks" hidden></div>
         <button class="nav-item" data-tab="external">外站趨勢</button>
-        <div class="nav-sep"></div>
-        <button class="nav-item" id="saved-btn" hidden>收藏 <span id="saved-count" class="nav-count">0</span></button>
       </nav>
 
       <div class="sidebar-foot">
@@ -41,7 +48,7 @@
       </div>
 
       <main>
-        <div id="industry-filter" class="industry-row" hidden></div>
+        <div id="list-meta" class="list-meta"></div>
         <div id="items"></div>
         <details id="unpublished" class="unpublished" hidden>
           <summary>本期未達刊登門檻的條目（<span id="unpublished-count">0</span>）</summary>

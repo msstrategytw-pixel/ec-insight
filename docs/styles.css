@@ -96,6 +96,51 @@ body {
 
 .nav-sep { height: 1px; background: var(--hairline); margin: 10px 12px; }
 
+/* 總覽區 */
+.side-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgba(0, 0, 0, 0.35);
+  padding: 0 12px;
+  margin-bottom: 4px;
+}
+.side-section { display: flex; flex-direction: column; gap: 2px; }
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  padding: 9px 12px;
+  color: var(--text-soft);
+  cursor: default;
+}
+
+/* 市場動態底下的產業勾選 */
+.ind-checks { display: flex; flex-direction: column; margin: 2px 0 6px; }
+.ind-checks[hidden] { display: none; }
+.ind-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.84rem;
+  padding: 5px 12px 5px 24px;
+  color: var(--text-soft);
+  cursor: pointer;
+  border-radius: 8px;
+  user-select: none;
+}
+.ind-check:hover { background: rgba(0, 0, 0, 0.03); }
+.ind-check.checked { color: var(--text); }
+.ind-check input {
+  accent-color: var(--accent);
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  cursor: pointer;
+}
+.ind-check .cnt { margin-left: auto; font-size: 0.74rem; color: rgba(0, 0, 0, 0.32); }
+
 .sidebar-foot { margin-top: auto; padding: 0 12px; }
 .auth { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .auth[hidden] { display: none; }
@@ -158,38 +203,10 @@ body {
 .search-count { font-size: 0.78rem; color: var(--text-soft); }
 
 
-/* ---- 產業篩選（文字列，可複選）---- */
+/* ---- 清單資訊列 ---- */
 
-.industry-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 20px;
-  margin-bottom: 18px;
-  padding: 0 2px;
-}
-.industry-row[hidden] { display: none; }
-
-.ind-link {
-  font: inherit;
-  font-size: 0.85rem;
-  background: none;
-  border: none;
-  padding: 2px 0;
-  color: var(--text-soft);
-  cursor: pointer;
-}
-.ind-link:hover { color: var(--text); }
-.ind-link.active { color: var(--accent); font-weight: 600; }
-
-.ind-count {
-  font-size: 0.72rem;
-  color: rgba(0, 0, 0, 0.32);
-  margin-left: 4px;
-}
-.ind-link.active .ind-count { color: var(--accent); opacity: 0.65; }
-
-.ind-note { font-size: 0.72rem; color: rgba(0, 0, 0, 0.28); margin-left: auto; }
+.list-meta { font-size: 0.78rem; color: var(--text-soft); margin-bottom: 14px; padding: 0 2px; }
+.list-meta:empty { display: none; }
 
 /* ---- 條目卡片 ---- */
 
@@ -258,6 +275,7 @@ body {
 .sources { font-size: 0.78rem; color: var(--text-soft); }
 .sources a { color: var(--text-soft); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(0, 0, 0, 0.2); }
 .sources a:hover { color: var(--accent); text-decoration-color: currentColor; }
+.src-date { color: rgba(0, 0, 0, 0.35); }
 
 /* ---- 收藏與回饋 ---- */
 
@@ -369,10 +387,17 @@ body {
     padding: 20px 0 8px;
   }
   .brand { padding: 0; margin-bottom: 16px; }
+  .side-label { display: none; }
+  .side-section { flex-direction: row; gap: 8px; margin-bottom: 8px; }
+  .stat-row, .side-section .nav-item { padding: 6px 10px; width: auto; white-space: nowrap; }
   .nav { flex-direction: row; flex-wrap: wrap; gap: 4px; }
   .nav-item { width: auto; white-space: nowrap; order: 0; }
   .nav-count { margin-left: 0; }
   .nav-sep { display: none; }
+  /* 產業勾選改排到分類下方一整列 */
+  .ind-checks { order: 1; flex-basis: 100%; flex-direction: row; flex-wrap: wrap; gap: 2px 6px; margin: 6px 0 0; }
+  .ind-check { padding: 4px 10px; white-space: nowrap; }
+  .ind-check .cnt { margin-left: 4px; }
   .sidebar-foot { margin-top: 14px; padding: 0; }
   .auth { flex-direction: row; align-items: center; }
   .content { max-width: none; padding-top: 18px; }

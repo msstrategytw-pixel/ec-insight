@@ -37,6 +37,11 @@ async function loadIndex() {
 
   initAuth();
   await loadIssue(state.issues[0].date);
+
+  // 總覽：全期別刊登總數（背景計算，不擋首屏）
+  allItems().then((all) => {
+    $("#stat-total").textContent = all.filter(({ item }) => item.published).length;
+  });
 }
 
 async function loadIssue(date) {
@@ -74,36 +79,37 @@ function scoreTotal(s) {
   return s.breadth + s.action + s.timeliness;
 }
 
-/** 產業篩選：內容區頂部的文字列，可複選（點擊切換），只在市場動態的期別檢視出現。 */
-function renderIndustryRow() {
-  const el = $("#industry-filter");
+/** 產業勾選清單：掛在側欄「市場動態」底下，可複選，只在該分類的期別檢視出現。 */
+function renderIndustryChecks() {
+  const el = $("#industry-nav");
   const show = state.view === "issue" && state.tab === "market";
   el.hidden = !show;
   if (!show) {
     el.innerHTML = "";
     return;
   }
-  // 各產業本期刊登則數，未啟用產業不顯示
+  // 各產業本期刊登則數；未啟用產業不顯示
+  const marketItems = state.data.items.filter((i) => i.tab === "market" && i.published);
   const counts = {};
-  state.data.items
-    .filter((i) => i.tab === "market" && i.published)
-    .forEach((i) => i.industries.forEach((n) => (counts[n] = (counts[n] || 0) + 1)));
+  marketItems.forEach((i) => i.industries.forEach((n) => (counts[n] = (counts[n] || 0) + 1)));
   el.innerHTML = [
-    `<button class="ind-link ${state.indSel.size === 0 ? "active" : ""}" data-ind="">全部</button>`,
+    `<label class="ind-check ${state.indSel.size === 0 ? "checked" : ""}">
+       <input type="checkbox" data-ind="" ${state.indSel.size === 0 ? "checked" : ""}>全部
+       <span class="cnt">${marketItems.length}</span></label>`,
     ...state.industries
       .filter((ind) => ind.active)
       .map(
-        (ind) =>
-          `<button class="ind-link ${state.indSel.has(ind.name) ? "active" : ""}" data-ind="${ind.name}">${ind.name}<span class="ind-count">${counts[ind.name] || 0}</span></button>`
+        (ind) => `<label class="ind-check ${state.indSel.has(ind.name) ? "checked" : ""}">
+          <input type="checkbox" data-ind="${ind.name}" ${state.indSel.has(ind.name) ? "checked" : ""}>${ind.name}
+          <span class="cnt">${counts[ind.name] || 0}</span></label>`
       ),
-    `<span class="ind-note">其餘產業陸續納入</span>`,
   ].join("");
-  el.querySelectorAll(".ind-link").forEach((btn) =>
-    btn.addEventListener("click", () => {
-      const name = btn.dataset.ind;
-      if (!name) state.indSel.clear();
-      else if (state.indSel.has(name)) state.indSel.delete(name);
-      else state.indSel.add(name);
+  el.querySelectorAll("input").forEach((cb) =>
+    cb.addEventListener("change", () => {
+      const name = cb.dataset.ind;
+      if (!name) state.indSel.clear(); // 勾「全部」＝清空個別選擇
+      else if (cb.checked) state.indSel.add(name);
+      else state.indSel.delete(name);
       render();
     })
   );
@@ -149,7 +155,7 @@ function itemCard(item, issueDate) {
       <h3>${item.title}</h3>
       <p class="summary">${item.summary}</p>
       <div class="why"><strong>對商家的意義</strong>　${item.why_it_matters}</div>
-      <div class="sources">來源：${sources}</div>
+      <div class="sources">來源：${sources}${item.source_date ? `<span class="src-date">｜${item.source_date}</span>` : ""}</div>
       <div class="card-actions" data-id="${item.id}" data-issue="${issueDate}">${actions}</div>
       <div class="fb-form" hidden></div>
     </article>`;
@@ -329,18 +335,19 @@ async function toggleSave(id, issueDate, btn) {
 }
 
 function updateSavedCount() {
+  // 總覽的固定欄位，不因未登入或無收藏而隱藏
   $("#saved-count").textContent = state.saved.size;
-  $("#saved-btn").hidden = !state.auth || (state.saved.size === 0 && state.view !== "saved");
 }
 
 async function renderSavedView() {
   const all = (await allItems()).filter(({ item }) => state.saved.has(item.id));
-  renderIndustryRow();
+  renderIndustryChecks();
   $("#unpublished").hidden = true;
   $("#editor-note").hidden = true;
+  $("#list-meta").textContent = all.length ? `共 ${all.length} 則收藏` : "";
   $("#items").innerHTML = all.length
     ? all.map(({ item, date }) => itemCard(item, date)).join("")
-    : `<p class="empty">還沒有收藏任何條目</p>`;
+    : `<p class="empty">${state.auth ? "還沒有收藏任何條目" : "登入後即可收藏條目"}</p>`;
   bindCardActions();
 }
 
@@ -363,10 +370,11 @@ function matches(item, terms) {
 async function renderSearchView() {
   const terms = state.query.toLowerCase().split(/\s+/).filter(Boolean);
   const hits = (await allItems()).filter(({ item }) => matches(item, terms));
-  renderIndustryRow();
+  renderIndustryChecks();
   $("#unpublished").hidden = true;
   $("#editor-note").hidden = true;
   $("#search-count").textContent = `找到 ${hits.length} 則（搜尋全部 ${state.issues.length} 期）`;
+  $("#list-meta").textContent = "";
   $("#items").innerHTML = hits.length
     ? hits.map(({ item, date }) => itemCard(item, date)).join("")
     : `<p class="empty">沒有符合「${state.query}」的條目</p>`;
@@ -473,12 +481,15 @@ function render() {
   const published = items.filter((i) => i.published);
   const unpublished = items.filter((i) => !i.published);
 
-  renderIndustryRow();
+  renderIndustryChecks();
 
   const visible =
     state.tab === "market" && state.indSel.size > 0
       ? published.filter((i) => i.industries.some((n) => state.indSel.has(n)))
       : published;
+
+  $("#list-meta").textContent =
+    `第 ${state.data.issue} 期・最近更新 ${state.data.date}・共 ${visible.length} 則`;
 
   $("#items").innerHTML =
     visible.length > 0
