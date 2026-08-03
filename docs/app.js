@@ -74,6 +74,31 @@ function scoreTotal(s) {
   return s.breadth + s.action + s.timeliness;
 }
 
+/** 產業選項掛在側欄「市場動態」底下，只在該分類的期別檢視時出現。 */
+function renderIndustryNav() {
+  const el = $("#industry-nav");
+  const show = state.view === "issue" && state.tab === "market";
+  el.hidden = !show;
+  if (!show) {
+    el.innerHTML = "";
+    return;
+  }
+  el.innerHTML = [
+    `<button class="sub-item ${state.industry === null ? "active" : ""}" data-ind="">全部</button>`,
+    ...state.industries.map((ind) =>
+      ind.active
+        ? `<button class="sub-item ${state.industry === ind.name ? "active" : ""}" data-ind="${ind.name}">${ind.name}</button>`
+        : `<button class="sub-item inactive" disabled title="MVP 階段尚未納入蒐集">${ind.name}</button>`
+    ),
+  ].join("");
+  el.querySelectorAll(".sub-item:not([disabled])").forEach((btn) =>
+    btn.addEventListener("click", () => {
+      state.industry = btn.dataset.ind || null;
+      render();
+    })
+  );
+}
+
 // ---- 卡片 ----
 
 function itemCard(item, issueDate) {
@@ -296,7 +321,7 @@ function updateSavedCount() {
 
 async function renderSavedView() {
   const all = (await allItems()).filter(({ item }) => state.saved.has(item.id));
-  $("#industry-filter").hidden = true;
+  renderIndustryNav();
   $("#unpublished").hidden = true;
   $("#editor-note").hidden = true;
   $("#items").innerHTML = all.length
@@ -324,7 +349,7 @@ function matches(item, terms) {
 async function renderSearchView() {
   const terms = state.query.toLowerCase().split(/\s+/).filter(Boolean);
   const hits = (await allItems()).filter(({ item }) => matches(item, terms));
-  $("#industry-filter").hidden = true;
+  renderIndustryNav();
   $("#unpublished").hidden = true;
   $("#editor-note").hidden = true;
   $("#search-count").textContent = `找到 ${hits.length} 則（搜尋全部 ${state.issues.length} 期）`;
@@ -434,28 +459,7 @@ function render() {
   const published = items.filter((i) => i.published);
   const unpublished = items.filter((i) => !i.published);
 
-  // 只有市場動態 tab 分產業
-  const filterEl = $("#industry-filter");
-  if (state.tab === "market") {
-    filterEl.hidden = false;
-    filterEl.innerHTML = [
-      `<button class="chip ${state.industry === null ? "active" : ""}" data-ind="">全部</button>`,
-      ...state.industries.map((ind) =>
-        ind.active
-          ? `<button class="chip ${state.industry === ind.name ? "active" : ""}" data-ind="${ind.name}">${ind.name}</button>`
-          : `<button class="chip inactive" disabled title="MVP 階段尚未納入蒐集">${ind.name}</button>`
-      ),
-    ].join("");
-    filterEl.querySelectorAll(".chip:not([disabled])").forEach((btn) =>
-      btn.addEventListener("click", () => {
-        state.industry = btn.dataset.ind || null;
-        render();
-      })
-    );
-  } else {
-    filterEl.hidden = true;
-    filterEl.innerHTML = "";
-  }
+  renderIndustryNav();
 
   const visible =
     state.tab === "market" && state.industry
