@@ -141,6 +141,20 @@ body {
 }
 .ind-check .cnt { margin-left: auto; font-size: 0.74rem; color: rgba(0, 0, 0, 0.32); }
 
+/* 尚未啟用的產業：仍列出但標為待開發 */
+.ind-check.pending { color: rgba(0, 0, 0, 0.32); cursor: default; }
+.ind-check.pending:hover { background: none; }
+.ind-check.pending input { cursor: default; }
+.ind-check .soon {
+  margin-left: auto;
+  font-size: 0.66rem;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
 .sidebar-foot { margin-top: auto; padding: 0 12px; }
 .auth { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .auth[hidden] { display: none; }

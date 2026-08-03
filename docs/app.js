@@ -96,13 +96,15 @@ function renderIndustryChecks() {
     `<label class="ind-check ${state.indSel.size === 0 ? "checked" : ""}">
        <input type="checkbox" data-ind="" ${state.indSel.size === 0 ? "checked" : ""}>全部
        <span class="cnt">${marketItems.length}</span></label>`,
-    ...state.industries
-      .filter((ind) => ind.active)
-      .map(
-        (ind) => `<label class="ind-check ${state.indSel.has(ind.name) ? "checked" : ""}">
-          <input type="checkbox" data-ind="${ind.name}" ${state.indSel.has(ind.name) ? "checked" : ""}>${ind.name}
-          <span class="cnt">${counts[ind.name] || 0}</span></label>`
-      ),
+    ...state.industries.map((ind) =>
+      ind.active
+        ? `<label class="ind-check ${state.indSel.has(ind.name) ? "checked" : ""}">
+             <input type="checkbox" data-ind="${ind.name}" ${state.indSel.has(ind.name) ? "checked" : ""}>${ind.name}
+             <span class="cnt">${counts[ind.name] || 0}</span></label>`
+        : `<label class="ind-check pending" title="尚未納入蒐集範圍">
+             <input type="checkbox" disabled>${ind.name}
+             <span class="soon">待開發</span></label>`
+    ),
   ].join("");
   el.querySelectorAll("input").forEach((cb) =>
     cb.addEventListener("change", () => {
