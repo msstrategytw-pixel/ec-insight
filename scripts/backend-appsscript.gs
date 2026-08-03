@@ -27,10 +27,10 @@ function doPost(e) {
     const data = JSON.parse(e.postData.contents);
     const action = data.action || 'feedback';
 
-    if (action === 'feedback') return json(handleFeedback(data));
-
-    // 其餘動作都需要登入
+    // 所有動作都需要登入，回饋者身分一律取自登入憑證
     const user = verify(data.id_token);
+
+    if (action === 'feedback') return json(handleFeedback(user, data));
     if (action === 'sync') return json(handleSync(user, data.saved || []));
     if (action === 'save' || action === 'unsave') return json(handleSave(user, data, action));
     if (action === 'subscribe' || action === 'unsubscribe') return json(handleSub(user, action));
@@ -57,11 +57,12 @@ function authorize() {
 
 // ---- 動作 ----
 
-function handleFeedback(data) {
+function handleFeedback(user, data) {
   const sheet = ss().getSheets()[0];
   ensureHeaders(sheet, FEEDBACK_HEADERS);
+  const who = user.name ? user.name + '（' + user.email + '）' : user.email;
   sheet.appendRow([
-    new Date(), data.user || '', data.issue || '', data.item_id || '',
+    new Date(), who, data.issue || '', data.item_id || '',
     data.tab || '', data.title || '', data.verdict || '', data.note || '',
   ]);
   return { ok: true };

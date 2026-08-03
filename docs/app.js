@@ -13,7 +13,6 @@ const state = {
 };
 
 const $ = (sel) => document.querySelector(sel);
-const LS_SAVED = "ec-insight-saved";
 const LS_TOKEN = "ec-insight-token";
 
 async function loadIndex() {
@@ -35,7 +34,6 @@ async function loadIndex() {
     loadIssue(select.value);
   });
 
-  state.saved = new Set(JSON.parse(localStorage.getItem(LS_SAVED) || "[]"));
   initAuth();
   await loadIssue(state.issues[0].date);
 }
@@ -84,14 +82,20 @@ function itemCard(item, issueDate) {
     .map((s) => `<a href="${s.url}" target="_blank" rel="noopener">${s.name}</a>`)
     .join("・");
 
-  const isSaved = state.saved.has(item.id);
-  const saveBtn = `<button class="save-btn ${isSaved ? "on" : ""}" data-id="${item.id}" data-issue="${issueDate}" title="${isSaved ? "取消收藏" : "收藏這則"}">${isSaved ? "★ 已收藏" : "☆ 收藏"}</button>`;
-
-  const feedback = state.config.feedback_endpoint
-    ? `<span class="feedback-q">這則有用嗎？</span>
-       <button class="fb-btn" data-verdict="有用">👍 有用</button>
-       <button class="fb-btn" data-verdict="沒用">👎 沒用</button>`
-    : "";
+  // 收藏與回饋都需要登入，才能對應到人
+  let actions;
+  if (!state.config.feedback_endpoint) {
+    actions = "";
+  } else if (!state.auth) {
+    actions = `<span class="feedback-q">登入後可收藏與回饋</span>`;
+  } else {
+    const isSaved = state.saved.has(item.id);
+    actions = `
+      <button class="save-btn ${isSaved ? "on" : ""}" title="${isSaved ? "取消收藏" : "收藏這則"}">${isSaved ? "★ 已收藏" : "☆ 收藏"}</button>
+      <span class="feedback-q">這則有用嗎？</span>
+      <button class="fb-btn" data-verdict="有用">👍 有用</button>
+      <button class="fb-btn" data-verdict="沒用">👎 沒用</button>`;
+  }
 
   return `
     <article class="card">
@@ -100,9 +104,7 @@ function itemCard(item, issueDate) {
       <p class="summary">${item.summary}</p>
       <div class="why"><strong>對商家的意義</strong>　${item.why_it_matters}</div>
       <div class="sources">來源：${sources}</div>
-      <div class="card-actions" data-id="${item.id}" data-issue="${issueDate}">
-        ${saveBtn}${feedback}
-      </div>
+      <div class="card-actions" data-id="${item.id}" data-issue="${issueDate}">${actions}</div>
     </article>`;
 }
 
@@ -180,6 +182,8 @@ function renderAuth() {
     $("#signout-btn").addEventListener("click", () => {
       state.auth = null;
       state.subscribed = false;
+      state.saved = new Set();
+      state.view = "issue";
       localStorage.removeItem(LS_TOKEN);
       renderAuth();
       render();
@@ -201,15 +205,10 @@ function renderAuth() {
 async function syncFromServer() {
   if (!state.auth || !state.config.feedback_endpoint) return;
   try {
-    // 本機既有收藏先合併上去，換裝置登入不會遺失
-    const out = await callBackend({
-      action: "sync",
-      id_token: state.auth.token,
-      saved: [...state.saved],
-    });
+    // 收藏一律以伺服器為準，換裝置登入就看得到同一份
+    const out = await callBackend({ action: "sync", id_token: state.auth.token, saved: [] });
     state.saved = new Set(out.saved || []);
     state.subscribed = !!out.subscribed;
-    localStorage.setItem(LS_SAVED, JSON.stringify([...state.saved]));
     renderAuth();
     render();
   } catch (err) {
@@ -238,34 +237,38 @@ async function toggleSubscribe() {
 // ---- 收藏 ----
 
 async function toggleSave(id, issueDate, btn) {
+  if (!state.auth) return;
   const nowSaved = !state.saved.has(id);
   if (nowSaved) state.saved.add(id);
   else state.saved.delete(id);
-  localStorage.setItem(LS_SAVED, JSON.stringify([...state.saved]));
   btn.className = `save-btn ${nowSaved ? "on" : ""}`;
   btn.textContent = nowSaved ? "★ 已收藏" : "☆ 收藏";
   updateSavedCount();
 
-  if (state.auth) {
-    const issue = await fetchIssue(issueDate);
-    const item = issue.items.find((i) => i.id === id);
-    try {
-      await callBackend({
-        action: nowSaved ? "save" : "unsave",
-        id_token: state.auth.token,
-        item_id: id,
-        issue: issueDate,
-        title: item ? item.title : "",
-      });
-    } catch (err) {
-      console.warn("收藏同步失敗：", err.message);
-    }
+  const issue = await fetchIssue(issueDate);
+  const item = issue.items.find((i) => i.id === id);
+  try {
+    await callBackend({
+      action: nowSaved ? "save" : "unsave",
+      id_token: state.auth.token,
+      item_id: id,
+      issue: issueDate,
+      title: item ? item.title : "",
+    });
+  } catch (err) {
+    // 失敗就還原，避免畫面與伺服器不一致
+    if (nowSaved) state.saved.delete(id);
+    else state.saved.add(id);
+    btn.className = `save-btn ${!nowSaved ? "on" : ""}`;
+    btn.textContent = !nowSaved ? "★ 已收藏" : "☆ 收藏";
+    updateSavedCount();
+    alert("收藏失敗：" + err.message);
   }
 }
 
 function updateSavedCount() {
   $("#saved-count").textContent = state.saved.size;
-  $("#saved-btn").hidden = state.saved.size === 0 && state.view !== "saved";
+  $("#saved-btn").hidden = !state.auth || (state.saved.size === 0 && state.view !== "saved");
 }
 
 async function renderSavedView() {
@@ -297,6 +300,7 @@ function bindCardActions() {
 
     box.querySelectorAll(".fb-btn").forEach((btn) =>
       btn.addEventListener("click", async () => {
+        if (!state.auth) return;
         const issue = await fetchIssue(issueDate);
         const item = issue.items.find((i) => i.id === id);
         const verdict = btn.dataset.verdict;
@@ -307,10 +311,10 @@ function bindCardActions() {
         const keep = box.querySelector(".save-btn").outerHTML;
         box.innerHTML = `${keep}<span class="feedback-q">送出中…</span>`;
         try {
+          // 回饋者身分由後端從登入憑證取得，不由前端傳入
           await callBackend({
             action: "feedback",
-            id_token: state.auth ? state.auth.token : "",
-            user: state.auth ? state.auth.name || state.auth.email : getAnonUser(),
+            id_token: state.auth.token,
             issue: issueDate,
             item_id: id,
             tab: item ? item.tab : "",
@@ -327,15 +331,6 @@ function bindCardActions() {
       })
     );
   });
-}
-
-function getAnonUser() {
-  let user = localStorage.getItem("ec-insight-user");
-  if (!user) {
-    user = (window.prompt("請輸入你的名字（只會問這一次，用於辨識回饋來源）") || "").trim();
-    if (user) localStorage.setItem("ec-insight-user", user);
-  }
-  return user;
 }
 
 // ---- 主畫面 ----
