@@ -17,18 +17,19 @@
 
       <div class="side-scroll">
         <div class="side-label">總覽</div>
-        <div class="side-section">
-          <div class="stat-row">總文章數 <span class="nav-count" id="stat-total">–</span></div>
-          <button class="nav-item" id="saved-btn">我的收藏 <span id="saved-count" class="nav-count">0</span></button>
-        </div>
+        <nav class="nav">
+          <button class="nav-item active" data-topic="all">全部文章 <span class="nav-count" id="count-all">–</span></button>
+          <button class="nav-item" id="saved-btn" data-topic="saved">我的收藏 <span id="saved-count" class="nav-count">0</span></button>
+        </nav>
 
         <div class="nav-sep"></div>
 
+        <div class="side-label">主題</div>
         <nav class="nav">
-          <button class="nav-item active" data-tab="ops">電商經營</button>
-          <button class="nav-item" data-tab="market">市場動態</button>
+          <button class="nav-item" data-topic="ops">電商經營 <span class="nav-count" id="count-ops">–</span></button>
+          <button class="nav-item" data-topic="market">市場動態 <span class="nav-count" id="count-market">–</span></button>
           <div id="industry-nav" class="ind-checks"></div>
-          <button class="nav-item" data-tab="external">外站趨勢</button>
+          <button class="nav-item" data-topic="external">外站趨勢 <span class="nav-count" id="count-external">–</span></button>
         </nav>
       </div>
 

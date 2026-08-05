@@ -1,16 +1,18 @@
+const TOPIC_LABEL = { all: "全部文章", ops: "電商經營", market: "市場動態", external: "外站趨勢", saved: "我的收藏" };
+
 const state = {
-  issues: [],
+  issues: [], // [{date, issue, title}]，新到舊
+  issueData: {}, // date -> 該期完整 json
+  all: [], // 攤平的 [{item, date, issue, title}]，新到舊
   industries: [],
   config: {},
-  data: null,
-  tab: "ops",
-  indSel: new Set(), // 市場動態的產業複選；空集合＝全部
-  view: "issue", // issue | saved | search
+  topic: "all", // all | ops | market | external | saved
+  indSel: new Set(), // 市場動態的產業複選；空＝全部
+  issueFilter: "all", // "all" 或某個 date；預設載入時設為最新期
   query: "",
-  auth: null, // { token, email, name }
+  auth: null,
   saved: new Set(),
   subscribed: false,
-  issueCache: {},
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -26,84 +28,81 @@ async function loadIndex() {
   state.config = await cfgRes.json();
   const idx = await res.json();
   state.issues = idx.issues.slice().sort((a, b) => b.date.localeCompare(a.date));
+
+  // 一次載入所有期別，攤平成跨期清單（新到舊）
+  const jsons = await Promise.all(
+    state.issues.map((i) => fetch(`data/${i.date}.json`).then((r) => r.json()))
+  );
+  state.issues.forEach((i, k) => {
+    state.issueData[i.date] = jsons[k];
+    for (const item of jsons[k].items) {
+      state.all.push({ item, date: i.date, issue: i.issue, title: i.title });
+    }
+  });
+
+  // 期別下拉：全部期別 + 各期
   const select = $("#issue-select");
-  select.innerHTML = state.issues
-    .map((i) => `<option value="${i.date}">${i.date}（第 ${i.issue} 期${i.title ? "・" + i.title : ""}）</option>`)
-    .join("");
+  select.innerHTML =
+    `<option value="all">全部期別</option>` +
+    state.issues
+      .map((i) => `<option value="${i.date}">${i.date}（第 ${i.issue} 期${i.title ? "・" + i.title : ""}）</option>`)
+      .join("");
   select.addEventListener("change", () => {
-    state.view = "issue";
-    loadIssue(select.value);
+    state.issueFilter = select.value;
+    state.query = "";
+    $("#search").value = "";
+    render();
   });
 
+  // 頁尾方針版本取最新一期
+  $("#policy-version").textContent = ` ${state.issueData[state.issues[0].date].policy_version} `;
+
+  renderNavCounts();
+  // 預設 B：進站看最新一期（週報感）
+  setIssueFilter(state.issues[0].date);
   initAuth();
-  await loadIssue(state.issues[0].date);
-
-  // 總覽：全期別刊登總數（背景計算，不擋首屏）
-  allItems().then((all) => {
-    $("#stat-total").textContent = all.filter(({ item }) => item.published).length;
-  });
-}
-
-async function loadIssue(date) {
-  state.data = await fetchIssue(date);
-  state.indSel = new Set();
-  $("#policy-version").textContent = ` ${state.data.policy_version} `;
-  const noteEl = $("#editor-note");
-  if (state.data.editor_note) {
-    noteEl.hidden = false;
-    $("#editor-note-text").textContent = state.data.editor_note;
-  } else {
-    noteEl.hidden = true;
-  }
   render();
 }
 
-async function fetchIssue(date) {
-  if (!state.issueCache[date]) {
-    state.issueCache[date] = await (await fetch(`data/${date}.json`)).json();
-  }
-  return state.issueCache[date];
+function setIssueFilter(v) {
+  state.issueFilter = v;
+  $("#issue-select").value = v;
 }
 
-/** 依時間新到舊回傳所有期別的條目（搜尋與收藏總覽共用）。 */
-async function allItems() {
-  const out = [];
-  for (const { date } of state.issues) {
-    const issue = await fetchIssue(date);
-    for (const item of issue.items) out.push({ item, date });
-  }
-  return out;
+/** 全期別的刊登總數與各主題／產業計數，填進側欄。 */
+function renderNavCounts() {
+  const pub = state.all.filter((x) => x.item.published);
+  const byTab = (t) => pub.filter((x) => x.item.tab === t).length;
+  $("#count-all").textContent = pub.length;
+  $("#count-ops").textContent = byTab("ops");
+  $("#count-market").textContent = byTab("market");
+  $("#count-external").textContent = byTab("external");
 }
 
 function scoreTotal(s) {
   return s.breadth + s.action + s.timeliness;
 }
 
-/** 產業勾選清單：固定顯示於側欄「市場動態」底下，可複選。
- *  勾選時若不在市場動態檢視，會自動切換過去（產業篩選只作用於市場動態）。 */
+/** 產業勾選清單：固定顯示於側欄「市場動態」底下，可複選（跨期計數）。
+ *  勾選任一產業＝切到市場動態主題並跨期瀏覽。 */
 function renderIndustryChecks() {
   const el = $("#industry-nav");
-  // 只在市場動態的期別檢視顯示則數，其他情境（如當前在別的分頁）則數留白
-  const onMarket = state.view === "issue" && state.tab === "market";
-  const marketItems = state.data
-    ? state.data.items.filter((i) => i.tab === "market" && i.published)
-    : [];
+  const marketPub = state.all.filter((x) => x.item.published && x.item.tab === "market");
   const counts = {};
-  if (onMarket) marketItems.forEach((i) => i.industries.forEach((n) => (counts[n] = (counts[n] || 0) + 1)));
-  const cnt = (n) => (onMarket ? `<span class="cnt">${counts[n] || 0}</span>` : "");
+  marketPub.forEach((x) => x.item.industries.forEach((n) => (counts[n] = (counts[n] || 0) + 1)));
+  const onMarket = state.topic === "market";
 
   el.innerHTML = [
-    `<label class="ind-check ${state.indSel.size === 0 ? "checked" : ""}">
-       <input type="checkbox" data-ind="" ${state.indSel.size === 0 ? "checked" : ""}>全部
-       ${onMarket ? `<span class="cnt">${marketItems.length}</span>` : ""}</label>`,
-    // 已啟用的排前面，待開發的沉到最後
+    `<label class="ind-check ${onMarket && state.indSel.size === 0 ? "checked" : ""}">
+       <input type="checkbox" data-ind="" ${onMarket && state.indSel.size === 0 ? "checked" : ""}>全部
+       <span class="cnt">${marketPub.length}</span></label>`,
     ...[...state.industries]
       .sort((a, b) => Number(b.active) - Number(a.active))
       .map((ind) =>
         ind.active
-          ? `<label class="ind-check ${state.indSel.has(ind.name) ? "checked" : ""}">
-               <input type="checkbox" data-ind="${ind.name}" ${state.indSel.has(ind.name) ? "checked" : ""}>${ind.name}
-               ${cnt(ind.name)}</label>`
+          ? `<label class="ind-check ${onMarket && state.indSel.has(ind.name) ? "checked" : ""}">
+               <input type="checkbox" data-ind="${ind.name}" ${onMarket && state.indSel.has(ind.name) ? "checked" : ""}>${ind.name}
+               <span class="cnt">${counts[ind.name] || 0}</span></label>`
           : `<label class="ind-check pending" title="尚未納入蒐集範圍">
                <input type="checkbox" disabled>${ind.name}
                <span class="soon">待開發</span></label>`
@@ -112,14 +111,15 @@ function renderIndustryChecks() {
   el.querySelectorAll("input:not([disabled])").forEach((cb) =>
     cb.addEventListener("change", () => {
       const name = cb.dataset.ind;
+      if (!state.topic || state.topic !== "market") state.indSel = new Set();
       if (!name) state.indSel.clear(); // 勾「全部」＝清空個別選擇
       else if (cb.checked) state.indSel.add(name);
       else state.indSel.delete(name);
-      // 在其他分頁調整產業 → 自動切到市場動態
-      state.view = "issue";
-      state.tab = "market";
+      // 調整產業＝切到市場動態、跨期瀏覽
+      state.topic = "market";
       state.query = "";
       $("#search").value = "";
+      setIssueFilter("all");
       render();
     })
   );
@@ -127,19 +127,21 @@ function renderIndustryChecks() {
 
 // ---- 卡片 ----
 
-function itemCard(item, issueDate) {
+function itemCard(entry, showBadge) {
+  const { item, date, issue } = entry;
   const total = scoreTotal(item.score);
   const meta = [];
   meta.push(
     `<span class="score ${total >= 12 ? "high" : ""}" title="影響廣度 ${item.score.breadth}・行動性 ${item.score.action}・時效性 ${item.score.timeliness}">評分 ${total}</span>`
   );
+  if (showBadge) meta.push(`<span class="tag issue-tag">第 ${issue} 期</span>`);
   // 產業標籤只在市場動態 tab 顯示
   if (item.tab === "market") {
     for (const ind of item.industries) meta.push(`<span class="tag">${ind}</span>`);
   }
   for (const flag of item.flags) meta.push(`<span class="flag">⚠ ${flag}</span>`);
-  if (state.view === "saved") meta.push(`<span class="tag">${issueDate}</span>`);
 
+  const issueDate = date;
   const sources = item.sources
     .map((s) => `<a href="${s.url}" target="_blank" rel="noopener">${s.name}</a>`)
     .join("・");
@@ -309,7 +311,7 @@ function renderAuth() {
       state.auth = null;
       state.subscribed = false;
       state.saved = new Set();
-      state.view = "issue";
+      if (state.topic === "saved") state.topic = "all";
       localStorage.removeItem(LS_TOKEN);
       renderAuth();
       render();
@@ -380,8 +382,8 @@ async function toggleSave(id, issueDate, btn) {
   btn.textContent = nowSaved ? "★ 已收藏" : "☆ 收藏";
   updateSavedCount();
 
-  const issue = await fetchIssue(issueDate);
-  const item = issue.items.find((i) => i.id === id);
+  const issue = state.issueData[issueDate];
+  const item = issue ? issue.items.find((i) => i.id === id) : null;
   try {
     await callBackend({
       action: nowSaved ? "save" : "unsave",
@@ -406,18 +408,6 @@ function updateSavedCount() {
   $("#saved-count").textContent = state.saved.size;
 }
 
-async function renderSavedView() {
-  const all = (await allItems()).filter(({ item }) => state.saved.has(item.id));
-  renderIndustryChecks();
-  $("#unpublished").hidden = true;
-  $("#editor-note").hidden = true;
-  $("#list-meta").textContent = all.length ? `共 ${all.length} 則收藏` : "";
-  $("#items").innerHTML = all.length
-    ? all.map(({ item, date }) => itemCard(item, date)).join("")
-    : `<p class="empty">${state.auth ? "還沒有收藏任何條目" : "登入後即可收藏條目"}</p>`;
-  bindCardActions();
-}
-
 // ---- 跨期搜尋 ----
 
 function matches(item, terms) {
@@ -432,20 +422,6 @@ function matches(item, terms) {
     .join(" ")
     .toLowerCase();
   return terms.every((t) => haystack.includes(t));
-}
-
-async function renderSearchView() {
-  const terms = state.query.toLowerCase().split(/\s+/).filter(Boolean);
-  const hits = (await allItems()).filter(({ item }) => matches(item, terms));
-  renderIndustryChecks();
-  $("#unpublished").hidden = true;
-  $("#editor-note").hidden = true;
-  $("#search-count").textContent = `找到 ${hits.length} 則（搜尋全部 ${state.issues.length} 期）`;
-  $("#list-meta").textContent = "";
-  $("#items").innerHTML = hits.length
-    ? hits.map(({ item, date }) => itemCard(item, date)).join("")
-    : `<p class="empty">沒有符合「${state.query}」的條目</p>`;
-  bindCardActions();
 }
 
 // ---- 事件綁定 ----
@@ -502,8 +478,8 @@ function openFeedbackForm(form, box, id, issueDate, verdict) {
     status.className = "fb-status";
     status.textContent = "送出中…";
     try {
-      const issue = await fetchIssue(issueDate);
-      const item = issue.items.find((i) => i.id === id);
+      const issue = state.issueData[issueDate];
+      const item = issue ? issue.items.find((i) => i.id === id) : null;
       // 回饋者身分由後端從登入憑證取得，不由前端傳入
       await callBackend({
         action: "feedback",
@@ -527,62 +503,99 @@ function openFeedbackForm(form, box, id, issueDate, verdict) {
 
 // ---- 主畫面 ----
 
+/** 依目前 topic × 期別 × 產業（或搜尋）算出要顯示的條目。 */
+function currentEntries() {
+  if (state.query) {
+    const terms = state.query.toLowerCase().split(/\s+/).filter(Boolean);
+    return state.all.filter((x) => x.item.published && matches(x.item, terms));
+  }
+  if (state.topic === "saved") {
+    return state.all.filter((x) => state.saved.has(x.item.id));
+  }
+  let pool = state.all.filter((x) => x.item.published);
+  if (state.topic !== "all") pool = pool.filter((x) => x.item.tab === state.topic);
+  if (state.issueFilter !== "all") pool = pool.filter((x) => x.date === state.issueFilter);
+  if (state.topic === "market" && state.indSel.size > 0)
+    pool = pool.filter((x) => x.item.industries.some((n) => state.indSel.has(n)));
+  return pool;
+}
+
+function listMetaText(count) {
+  const parts = [];
+  if (state.topic === "market" && state.indSel.size > 0) parts.push([...state.indSel].join("、"));
+  else parts.push(TOPIC_LABEL[state.topic]);
+  if (state.issueFilter === "all") parts.push("全部期別");
+  else {
+    const i = state.issues.find((x) => x.date === state.issueFilter);
+    parts.push(`第 ${i.issue} 期${i.title ? "・" + i.title : ""}`);
+  }
+  parts.push(`共 ${count} 則`);
+  return parts.join("・");
+}
+
 function render() {
   updateSavedCount();
-  document.querySelectorAll(".nav-item[data-tab]").forEach((b) =>
-    b.classList.toggle("active", state.view === "issue" && b.dataset.tab === state.tab)
+  document.querySelectorAll(".nav-item[data-topic]").forEach((b) =>
+    b.classList.toggle("active", !state.query && b.dataset.topic === state.topic)
   );
-  $("#saved-btn").classList.toggle("active", state.view === "saved");
-  if (state.view !== "search") $("#search-count").textContent = "";
-
-  if (state.view === "search") {
-    renderSearchView();
-    return;
-  }
-  if (state.view === "saved") {
-    renderSavedView();
-    return;
-  }
-
-  const items = state.data.items.filter((i) => i.tab === state.tab);
-  const published = items.filter((i) => i.published);
-  const unpublished = items.filter((i) => !i.published);
-
   renderIndustryChecks();
 
-  const visible =
-    state.tab === "market" && state.indSel.size > 0
-      ? published.filter((i) => i.industries.some((n) => state.indSel.has(n)))
-      : published;
+  const entries = currentEntries();
+  // 只有在「單一期別 × 全部文章」時，才顯示該期編輯後記與未刊登示範
+  const singleIssue =
+    !state.query && state.topic === "all" && state.issueFilter !== "all";
+  const showBadge = state.query || state.topic === "saved" || state.issueFilter === "all";
 
-  $("#list-meta").textContent =
-    `第 ${state.data.issue} 期・最近更新 ${state.data.date}・共 ${visible.length} 則`;
+  // 清單資訊列
+  if (state.query) {
+    $("#list-meta").textContent = `搜尋「${state.query}」・找到 ${entries.length} 則（全部 ${state.issues.length} 期）`;
+  } else {
+    $("#list-meta").textContent = listMetaText(entries.length);
+  }
 
-  $("#items").innerHTML =
-    visible.length > 0
-      ? visible.map((i) => itemCard(i, state.data.date)).join("")
-      : `<p class="empty">本期此分類沒有刊登條目</p>`;
+  // 條目
+  let emptyMsg = "此條件下沒有條目";
+  if (state.topic === "saved") emptyMsg = state.auth ? "還沒有收藏任何條目" : "登入後即可收藏條目";
+  else if (state.query) emptyMsg = `沒有符合「${state.query}」的條目`;
+  $("#items").innerHTML = entries.length
+    ? entries.map((e) => itemCard(e, showBadge)).join("")
+    : `<p class="empty">${emptyMsg}</p>`;
 
-  const unpubEl = $("#unpublished");
-  unpubEl.hidden = unpublished.length === 0;
-  $("#unpublished-count").textContent = unpublished.length;
-  $("#unpublished-items").innerHTML = unpublished
-    .map((i) => itemCard(i, state.data.date))
-    .join("");
-
+  // 編輯後記
   const noteEl = $("#editor-note");
-  noteEl.hidden = !state.data.editor_note;
+  const issueObj = singleIssue ? state.issueData[state.issueFilter] : null;
+  if (issueObj && issueObj.editor_note) {
+    noteEl.hidden = false;
+    $("#editor-note-text").textContent = issueObj.editor_note;
+  } else {
+    noteEl.hidden = true;
+  }
+
+  // 未刊登示範（僅單一期別全覽時）
+  const unpubEl = $("#unpublished");
+  const unpub = issueObj ? issueObj.items.filter((i) => !i.published) : [];
+  unpubEl.hidden = unpub.length === 0;
+  $("#unpublished-count").textContent = unpub.length;
+  $("#unpublished-items").innerHTML = unpub
+    .map((item) => itemCard({ item, date: state.issueFilter, issue: issueObj.issue }, false))
+    .join("");
 
   bindCardActions();
 }
 
-document.querySelectorAll(".nav-item[data-tab]").forEach((btn) =>
+// 主題導覽：點了即跨期瀏覽該主題（期別重置為全部）；收藏維持切換
+document.querySelectorAll(".nav-item[data-topic]").forEach((btn) =>
   btn.addEventListener("click", () => {
-    state.view = "issue";
+    const topic = btn.dataset.topic;
     state.query = "";
     $("#search").value = "";
-    state.tab = btn.dataset.tab;
-    state.indSel = new Set();
+    if (topic === "saved" && state.topic === "saved") {
+      state.topic = "all"; // 再按一次收藏＝回到全部
+    } else {
+      state.topic = topic;
+    }
+    if (state.topic !== "market") state.indSel = new Set();
+    setIssueFilter("all");
     render();
   })
 );
@@ -592,7 +605,6 @@ $("#search").addEventListener("input", (e) => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => {
     state.query = e.target.value.trim();
-    state.view = state.query ? "search" : "issue";
     render();
   }, 200);
 });
@@ -600,16 +612,8 @@ $("#search").addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     e.target.value = "";
     state.query = "";
-    state.view = "issue";
     render();
   }
-});
-
-$("#saved-btn").addEventListener("click", () => {
-  state.view = state.view === "saved" ? "issue" : "saved";
-  state.query = "";
-  $("#search").value = "";
-  render();
 });
 
 loadIndex();
