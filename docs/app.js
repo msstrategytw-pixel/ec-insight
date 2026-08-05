@@ -28,7 +28,7 @@ async function loadIndex() {
   state.issues = idx.issues.slice().sort((a, b) => b.date.localeCompare(a.date));
   const select = $("#issue-select");
   select.innerHTML = state.issues
-    .map((i) => `<option value="${i.date}">${i.date}（第 ${i.issue} 期）</option>`)
+    .map((i) => `<option value="${i.date}">${i.date}（第 ${i.issue} 期${i.title ? "・" + i.title : ""}）</option>`)
     .join("");
   select.addEventListener("change", () => {
     state.view = "issue";
